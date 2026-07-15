@@ -1,0 +1,33 @@
+# ============================================================
+# Day 1 - Dataset analysis
+# ============================================================
+
+numpy
+Pillow
+matplotlib
+pandas
+
+
+# ============================================================
+# Day 2 - PyTorch Dataset, Transform, and DataLoader
+# ============================================================
+
+# Current development environment:
+# Windows
+# Python 3.11.9
+# CPU-only PyTorch
+#
+# The extra PyTorch package index is required to install
+# torch and torchvision versions with the "+cpu" build tag.
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+torch==2.12.0+cpu
+torchvision==0.27.0+cpu
+scikit-learn==1.9.0
+
+
+# ============================================================
+# Testing
+# ============================================================
+
+pytest

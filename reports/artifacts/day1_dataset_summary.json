@@ -1,0 +1,63 @@
+{
+  "dataset_name": "Casting Product Image Data for Quality Inspection",
+  "project_class_definition": {
+    "0": "NORMAL",
+    "1": "DEFECT"
+  },
+  "dataset_paths": {
+    "train": "data/raw/casting_product_images/casting_data/casting_data/train",
+    "test": "data/raw/casting_product_images/casting_data/casting_data/test"
+  },
+  "total_file_count": 7348,
+  "valid_image_count": 7348,
+  "corrupted_image_count": 0,
+  "unsupported_file_count": 0,
+  "split_class_counts": [
+    {
+      "split": "test",
+      "class_name": "DEFECT",
+      "class_index": 1,
+      "file_count": 453
+    },
+    {
+      "split": "test",
+      "class_name": "NORMAL",
+      "class_index": 0,
+      "file_count": 262
+    },
+    {
+      "split": "train",
+      "class_name": "DEFECT",
+      "class_index": 1,
+      "file_count": 3758
+    },
+    {
+      "split": "train",
+      "class_name": "NORMAL",
+      "class_index": 0,
+      "file_count": 2875
+    }
+  ],
+  "extension_counts": [
+    {
+      "extension": ".jpeg",
+      "file_count": 7348
+    }
+  ],
+  "image_size_counts": [
+    {
+      "width": 300,
+      "height": 300,
+      "image_count": 7348
+    }
+  ],
+  "image_mode_counts": [
+    {
+      "image_mode": "RGB",
+      "channel_count": 3,
+      "image_count": 7348
+    }
+  ],
+  "corrupted_files": [],
+  "unsupported_files": []
+}
