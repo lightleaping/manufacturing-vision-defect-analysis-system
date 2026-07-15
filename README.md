@@ -1,4 +1,4 @@
-# Manufacturing Vision Defect Analysis System
+﻿# Manufacturing Vision Defect Analysis System
 
 제조 이미지를 활용하여 정상·불량을 분류하고, 모델 학습부터 평가·해석·추론 API·대시보드까지 연결하는 제조 Vision 프로젝트입니다.
 
@@ -880,5 +880,3 @@ Reproducibility
 ```
 
 다음 단계에서는 현재 완성된 이미지 입력 Pipeline을 CNN Baseline 모델에 연결합니다.
-#   m a n u f a c t u r i n g - v i s i o n - d e f e c t - a n a l y s i s - s y s t e m  
- 
