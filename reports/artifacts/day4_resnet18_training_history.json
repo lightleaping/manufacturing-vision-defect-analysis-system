@@ -1,0 +1,127 @@
+{
+  "project": {
+    "name": "Manufacturing Vision Defect Analysis System",
+    "name_korean": "제조 비전 결함 분석 시스템",
+    "run_name": "day4_resnet18_transfer_training"
+  },
+  "environment": {
+    "python_version": "3.11.9",
+    "python_executable": "C:\\Users\\kflow\\Downloads\\manufacturing-vision-defect-analysis-system\\.venv\\Scripts\\python.exe",
+    "torch_version": "2.12.0+cpu",
+    "device": "cpu",
+    "cuda_available": false
+  },
+  "reproducibility": {
+    "random_seed": 42,
+    "deterministic_algorithms": false
+  },
+  "data": {
+    "image_size": [
+      224,
+      224
+    ],
+    "class_to_index": {
+      "ok_front": 0,
+      "def_front": 1
+    },
+    "positive_class": "DEFECT",
+    "batch_size": 32,
+    "num_workers": 0,
+    "pin_memory": false,
+    "drop_last": false,
+    "persistent_workers": false,
+    "train_sample_count": 5306,
+    "validation_sample_count": 1327,
+    "test_sample_count": 715,
+    "train_batch_count": 166,
+    "validation_batch_count": 42,
+    "test_batch_count": 23,
+    "test_used_during_training": false
+  },
+  "model": {
+    "name": "ResNet18Transfer",
+    "module": "src.models.resnet18_transfer",
+    "architecture": "torchvision_resnet18",
+    "pretrained_weights": "ResNet18_Weights.DEFAULT",
+    "freeze_backbone": true,
+    "batchnorm_policy": "frozen_backbone_eval",
+    "classification_head": "Linear(512, 1)",
+    "output": "single_binary_raw_logit",
+    "total_parameter_count": 11177025,
+    "trainable_parameter_count": 513,
+    "frozen_parameter_count": 11176512,
+    "optimizer_parameter_count": 513,
+    "gradcam_target_layer": "resnet18.layer4.1.conv2"
+  },
+  "training_configuration": {
+    "epoch_count": 5,
+    "loss_function": "BCEWithLogitsLoss",
+    "optimizer": "Adam",
+    "learning_rate": 0.001,
+    "weight_decay": 0.0,
+    "classification_threshold": 0.5,
+    "best_model_selection_metric": "validation_loss"
+  },
+  "best_result": {
+    "epoch_number": 5,
+    "validation_loss": 0.15791971719884837,
+    "validation_accuracy": 0.9706103993971364,
+    "validation_accuracy_percent": 97.06103993971365
+  },
+  "runtime": {
+    "training_duration_seconds": 2642.8880672000014,
+    "training_duration_minutes": 44.048134453333354
+  },
+  "artifacts": {
+    "checkpoint_path": "models/checkpoints/resnet18_transfer_best.pt",
+    "training_history_path": "reports/artifacts/day4_resnet18_training_history.json",
+    "checkpoint_restored_after_training": true
+  },
+  "history": [
+    {
+      "epoch_number": 1,
+      "train_loss": 0.5137520345076048,
+      "train_accuracy": 0.7877874104787034,
+      "train_accuracy_percent": 78.77874104787034,
+      "validation_loss": 0.35982962108772326,
+      "validation_accuracy": 0.9306706857573473,
+      "validation_accuracy_percent": 93.06706857573474
+    },
+    {
+      "epoch_number": 2,
+      "train_loss": 0.32534876619695585,
+      "train_accuracy": 0.9176404070863173,
+      "train_accuracy_percent": 91.76404070863174,
+      "validation_loss": 0.2515845650465936,
+      "validation_accuracy": 0.9638281838733986,
+      "validation_accuracy_percent": 96.38281838733987
+    },
+    {
+      "epoch_number": 3,
+      "train_loss": 0.2482690217582136,
+      "train_accuracy": 0.9427063701470034,
+      "train_accuracy_percent": 94.27063701470034,
+      "validation_loss": 0.1976219122357717,
+      "validation_accuracy": 0.972871137905049,
+      "validation_accuracy_percent": 97.2871137905049
+    },
+    {
+      "epoch_number": 4,
+      "train_loss": 0.20335197823927442,
+      "train_accuracy": 0.9558989822842066,
+      "train_accuracy_percent": 95.58989822842065,
+      "validation_loss": 0.17866004939445806,
+      "validation_accuracy": 0.9698568198944989,
+      "validation_accuracy_percent": 96.98568198944989
+    },
+    {
+      "epoch_number": 5,
+      "train_loss": 0.17060106951438658,
+      "train_accuracy": 0.9645684131172257,
+      "train_accuracy_percent": 96.45684131172257,
+      "validation_loss": 0.15791971719884837,
+      "validation_accuracy": 0.9706103993971364,
+      "validation_accuracy_percent": 97.06103993971365
+    }
+  ]
+}

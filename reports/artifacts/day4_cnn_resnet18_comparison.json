@@ -1,0 +1,90 @@
+{
+  "project": {
+    "name": "Manufacturing Vision Defect Analysis System",
+    "name_korean": "제조 비전 결함 분석 시스템",
+    "run_name": "day4_cnn_resnet18_comparison"
+  },
+  "fair_comparison_conditions": {
+    "train_sample_count": 5306,
+    "validation_sample_count": 1327,
+    "test_sample_count": 715,
+    "image_size": [
+      224,
+      224
+    ],
+    "class_mapping": {
+      "NORMAL": 0,
+      "DEFECT": 1
+    },
+    "positive_class": "DEFECT",
+    "classification_threshold": 0.5,
+    "best_model_selection_metric": "validation_loss",
+    "same_train_transform": true,
+    "same_validation_transform": true,
+    "same_test_transform": true,
+    "same_loss_function": "BCEWithLogitsLoss",
+    "same_metric_implementation": true
+  },
+  "models": {
+    "cnn_baseline": {
+      "architecture": "custom_cnn_baseline",
+      "pretrained": false,
+      "parameter_count": 6065
+    },
+    "resnet18_transfer": {
+      "architecture": "torchvision_resnet18",
+      "pretrained": true,
+      "freeze_backbone": true,
+      "total_parameter_count": 11177025,
+      "trainable_parameter_count": 513
+    }
+  },
+  "comparison": {
+    "test_loss": {
+      "cnn_baseline": 0.45333737139101626,
+      "resnet18_transfer": 0.15872120549316174,
+      "resnet_minus_cnn": -0.29461616589785455,
+      "resnet_minus_cnn_percentage_points": null,
+      "better_model": "resnet18_transfer"
+    },
+    "accuracy": {
+      "cnn_baseline": 0.7692307692307693,
+      "resnet18_transfer": 0.9734265734265735,
+      "resnet_minus_cnn": 0.2041958041958042,
+      "resnet_minus_cnn_percentage_points": 20.41958041958042,
+      "better_model": "resnet18_transfer"
+    },
+    "precision": {
+      "cnn_baseline": 0.8287671232876712,
+      "resnet18_transfer": 0.9717391304347827,
+      "resnet_minus_cnn": 0.14297200714711145,
+      "resnet_minus_cnn_percentage_points": 14.297200714711146,
+      "better_model": "resnet18_transfer"
+    },
+    "recall": {
+      "cnn_baseline": 0.8013245033112583,
+      "resnet18_transfer": 0.9867549668874173,
+      "resnet_minus_cnn": 0.185430463576159,
+      "resnet_minus_cnn_percentage_points": 18.5430463576159,
+      "better_model": "resnet18_transfer"
+    },
+    "f1_score": {
+      "cnn_baseline": 0.8148148148148149,
+      "resnet18_transfer": 0.9791894852135816,
+      "resnet_minus_cnn": 0.16437467039876674,
+      "resnet_minus_cnn_percentage_points": 16.437467039876672,
+      "better_model": "resnet18_transfer"
+    }
+  },
+  "summary": {
+    "accuracy_improvement_percentage_points": 20.41958041958042,
+    "recall_improvement_percentage_points": 18.5430463576159,
+    "f1_improvement_percentage_points": 16.437467039876672,
+    "primary_winner": "resnet18_transfer"
+  },
+  "artifacts": {
+    "cnn_evaluation_path": "reports/artifacts/day3_cnn_baseline_test_evaluation.json",
+    "resnet18_evaluation_path": "reports/artifacts/day4_resnet18_test_evaluation.json",
+    "comparison_output_path": "reports/artifacts/day4_cnn_resnet18_comparison.json"
+  }
+}

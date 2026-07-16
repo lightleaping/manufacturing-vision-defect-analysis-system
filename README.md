@@ -2004,3 +2004,163 @@ False Positive·False Negative 의미
 ```
 
 AI가 생성한 코드를 그대로 제출하는 것이 아니라, 각 파일·Class·함수의 역할과 입력·출력·설계 이유를 확인하고 실제 실행 결과를 기준으로 수정·검증·문서화했습니다.
+
+<!-- DAY4_RESNET18_START -->
+
+## Day 4 — ResNet18 Transfer Learning
+
+Day 3의 CNNBaseline과 동일한 Dataset·Transform·Loss·Threshold·평가 기준을 사용하여
+ImageNet 사전학습 ResNet18 기반 전이학습 모델을 구현했다.
+
+### Architecture
+
+```text
+Input [B, 3, 224, 224]
+→ torchvision ResNet18
+→ Frozen Backbone
+→ Linear(512, 1)
+→ Raw Logit [B]
+```
+
+```text
+Pretrained Weight       : ResNet18_Weights.DEFAULT
+Backbone                : Frozen
+BatchNorm               : Frozen Backbone Evaluation Mode
+Classification Head     : Linear(512, 1)
+Total Parameters        : 11,177,025
+Trainable Parameters    : 513
+Frozen Parameters       : 11,176,512
+Grad-CAM Target Layer   : resnet18.layer4.1.conv2
+```
+
+### Training Result
+
+```text
+Epoch                    : 5
+Best Epoch               : 5
+Best Validation Loss     : 0.157920
+Best Validation Accuracy : 97.06%
+Training Time            : 44.05 minutes
+```
+
+### Test Result
+
+| Metric | CNNBaseline | ResNet18 | Improvement |
+|---|---:|---:|---:|
+| Accuracy | 76.92% | **97.34%** | **+20.42%p** |
+| Precision | 82.88% | **97.17%** | **+14.29%p** |
+| Recall | 80.13% | **98.68%** | **+18.54%p** |
+| F1 Score | 81.48% | **97.92%** | **+16.44%p** |
+
+ResNet18 Confusion Matrix:
+
+```text
+[
+    [249, 13],
+    [6, 447],
+]
+```
+
+```text
+TN = 249
+FP = 13
+FN = 6
+TP = 447
+```
+
+CNNBaseline과 비교하면 False Negative는 `90 → 6`으로 84장 감소했고,
+전체 오분류는 `165 → 19`로 146장 감소했다.
+
+### Artifacts
+
+```text
+models/checkpoints/resnet18_transfer_best.pt
+reports/artifacts/day4_resnet18_training_history.json
+reports/artifacts/day4_resnet18_test_evaluation.json
+reports/artifacts/day4_cnn_resnet18_comparison.json
+reports/day4_resnet18_transfer_learning_training_and_evaluation_summary.md
+```
+
+### Tests
+
+```text
+1141 passed
+```
+
+현재 비교 결과에 따라 이후 추론·오분류 분석·Grad-CAM 단계에서는
+ResNet18 Best Checkpoint를 기본 주 모델로 우선 사용한다.
+
+<!-- DAY4_RESNET18_END -->
+
+<!-- DAY5_MISCLASSIFICATION_START -->
+## Day 5 — ResNet18 Misclassified Image Analysis
+
+Day 4 ResNet18 Test 평가의 오분류 19장을 분석하고 시각화했다.
+
+| 항목 | 결과 |
+| --- | ---: |
+| Test Samples | 715 |
+| Correct | 696 |
+| Misclassified | 19 |
+| False Positive | 13 |
+| False Negative | 6 |
+| Error Rate | 2.66% |
+
+분석 기준:
+
+```text
+0 = NORMAL
+1 = DEFECT
+Positive Class = DEFECT
+Classification Threshold = 0.5
+```
+
+```python
+threshold_distance = abs(
+    defect_probability - 0.5
+)
+```
+
+가장 확신한 오분류:
+
+```text
+Sample Index = 202
+File = cast_ok_0_7839.jpeg
+Ground Truth = NORMAL
+Prediction = DEFECT
+P(DEFECT) = 0.828241
+```
+
+가장 확신한 False Negative:
+
+```text
+Sample Index = 342
+File = cast_def_0_150.jpeg
+Ground Truth = DEFECT
+Prediction = NORMAL
+P(DEFECT) = 0.256505
+Wrong Prediction Confidence = 0.743495
+```
+
+생성 Artifact:
+
+```text
+reports/artifacts/day5_resnet18_misclassification_analysis.json
+reports/figures/day5_resnet18_false_positives.png
+reports/figures/day5_resnet18_false_negatives.png
+reports/figures/day5_resnet18_all_misclassifications.png
+```
+
+검증 결과:
+
+```text
+Day 5 Tests = 23 passed
+Full Regression Tests = 1164 passed
+```
+
+상세 보고서:
+
+```text
+reports/day5_misclassified_image_analysis_and_visualization_summary.md
+```
+<!-- DAY5_MISCLASSIFICATION_END -->
