@@ -2164,3 +2164,59 @@ Full Regression Tests = 1164 passed
 reports/day5_misclassified_image_analysis_and_visualization_summary.md
 ```
 <!-- DAY5_MISCLASSIFICATION_END -->
+
+<!-- DAY6_GRADCAM_START -->
+## Day 6 — ResNet18 Grad-CAM Explainability
+
+ResNet18이 특정 이미지를 `NORMAL` 또는 `DEFECT`로 판단할 때 마지막
+Convolution Layer에서 상대적으로 주목한 영역을 확인하기 위해 PyTorch
+Hook 기반 Grad-CAM을 직접 구현했다.
+
+### 핵심 설계
+
+```text
+Target Layer  : resnet18.layer4.1.conv2
+Target Policy : Predicted Class
+DEFECT Score  : raw_logit
+NORMAL Score  : -raw_logit
+Batch Size    : 1
+Input         : 224 × 224, ImageNet Normalize
+Output        : Original / Heatmap / Overlay
+```
+
+Day 4 평가 JSON과 Day 5 오분류 JSON을 교차 검증한 뒤 다음 대표 표본
+7장을 자동 선택했다.
+
+```text
+고확신 True Negative 1장
+고확신 True Positive 1장
+고확신 False Positive 2장
+고확신 False Negative 1장
+결정 경계 False Positive 1장
+결정 경계 False Negative 1장
+```
+
+실제 실행 결과:
+
+```text
+Generated Samples      : 7
+Runtime                 : 4.81 seconds
+Day 6 Tests             : 40 passed
+Full Regression Tests   : 1204 passed
+PNG Visual Check        : 이상 없음
+```
+
+Artifact:
+
+```text
+reports/artifacts/day6_resnet18_gradcam_analysis.json
+reports/figures/day6_resnet18_gradcam_overview.png
+reports/figures/day6_resnet18_gradcam_high_confidence_errors.png
+reports/figures/day6_resnet18_gradcam_boundary_errors.png
+reports/day6_resnet18_gradcam_explainability_summary.md
+```
+
+> Grad-CAM Heatmap은 모델이 예측에 상대적으로 사용한 영역을 보여주는 설명
+> 보조 수단이다. 실제 결함 위치의 정답 Mask나 Detection 결과로 해석하지 않는다.
+
+<!-- DAY6_GRADCAM_END -->

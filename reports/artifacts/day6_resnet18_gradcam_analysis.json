@@ -1,0 +1,428 @@
+{
+  "project": {
+    "name": "Manufacturing Vision Defect Analysis System",
+    "name_korean": "제조 비전 결함 분석 시스템",
+    "run_name": "day6_resnet18_gradcam_explainability"
+  },
+  "generated_at_utc": "2026-07-16T08:12:41.160680+00:00",
+  "environment": {
+    "torch_version": "2.12.0+cpu",
+    "device": "cpu",
+    "cuda_available": false
+  },
+  "source_artifacts": {
+    "checkpoint_path": "models/checkpoints/resnet18_transfer_best.pt",
+    "day4_evaluation_path": "reports/artifacts/day4_resnet18_test_evaluation.json",
+    "day5_analysis_path": "reports/artifacts/day5_resnet18_misclassification_analysis.json"
+  },
+  "gradcam_configuration": {
+    "target_layer": "resnet18.layer4.1.conv2",
+    "batch_size": 1,
+    "classification_threshold": 0.5,
+    "target_policy": "predicted_class",
+    "defect_target_score": "raw_logit",
+    "normal_target_score": "negative_raw_logit",
+    "channel_weight": "spatial_mean_of_gradients",
+    "weighted_activation": "channel_weighted_sum",
+    "relu": true,
+    "normalization": "min_max_0_to_1",
+    "input_image_size": [
+      224,
+      224
+    ],
+    "input_normalization": "ImageNet mean/std",
+    "overlay_alpha": 0.4,
+    "colormap": "jet"
+  },
+  "selection_summary": {
+    "selected_sample_count": 7,
+    "selection_types": [
+      "HIGH_CONFIDENCE_TRUE_NEGATIVE",
+      "HIGH_CONFIDENCE_TRUE_POSITIVE",
+      "HIGH_CONFIDENCE_FALSE_POSITIVE_1",
+      "HIGH_CONFIDENCE_FALSE_POSITIVE_2",
+      "HIGH_CONFIDENCE_FALSE_NEGATIVE",
+      "BOUNDARY_FALSE_POSITIVE",
+      "BOUNDARY_FALSE_NEGATIVE"
+    ]
+  },
+  "samples": [
+    {
+      "selection_type": "HIGH_CONFIDENCE_TRUE_NEGATIVE",
+      "selection_reason": "정상 정분류 중 P(DEFECT)가 가장 낮은 표본",
+      "sample_index": 198,
+      "image_path": "data/raw/casting_product_images/casting_data/casting_data/test/ok_front/cast_ok_0_7631.jpeg",
+      "ground_truth_label": 0,
+      "ground_truth_class_name": "NORMAL",
+      "prediction": 0,
+      "prediction_class_name": "NORMAL",
+      "defect_probability": 0.013476800173521042,
+      "correct": true,
+      "threshold_distance": 0.48652319982647896,
+      "wrong_prediction_confidence": null,
+      "source_evaluation": {
+        "raw_logit": -4.293217182159424,
+        "defect_probability": 0.013476800173521042,
+        "prediction": 0
+      },
+      "gradcam": {
+        "raw_logit": -4.293217182159424,
+        "defect_probability": 0.013476800173521042,
+        "prediction": 0,
+        "prediction_class_name": "NORMAL",
+        "target_class": "NORMAL",
+        "target_score_mode": "negative_raw_logit",
+        "target_score_value": 4.293217182159424,
+        "target_layer_name": "resnet18.layer4.1.conv2",
+        "activation_shape": [
+          1,
+          512,
+          7,
+          7
+        ],
+        "gradient_shape": [
+          1,
+          512,
+          7,
+          7
+        ],
+        "cam_shape": [
+          224,
+          224
+        ],
+        "cam_min": 0.0,
+        "cam_max": 0.9999999403953552
+      },
+      "reproduction_check": {
+        "raw_logit_absolute_error": 0.0,
+        "probability_absolute_error": 0.0,
+        "prediction_matches": true
+      }
+    },
+    {
+      "selection_type": "HIGH_CONFIDENCE_TRUE_POSITIVE",
+      "selection_reason": "불량 정분류 중 P(DEFECT)가 가장 높은 표본",
+      "sample_index": 313,
+      "image_path": "data/raw/casting_product_images/casting_data/casting_data/test/def_front/cast_def_0_1414.jpeg",
+      "ground_truth_label": 1,
+      "ground_truth_class_name": "DEFECT",
+      "prediction": 1,
+      "prediction_class_name": "DEFECT",
+      "defect_probability": 0.999903678894043,
+      "correct": true,
+      "threshold_distance": 0.49990367889404297,
+      "wrong_prediction_confidence": null,
+      "source_evaluation": {
+        "raw_logit": 9.247676849365234,
+        "defect_probability": 0.999903678894043,
+        "prediction": 1
+      },
+      "gradcam": {
+        "raw_logit": 9.247676849365234,
+        "defect_probability": 0.999903678894043,
+        "prediction": 1,
+        "prediction_class_name": "DEFECT",
+        "target_class": "DEFECT",
+        "target_score_mode": "raw_logit",
+        "target_score_value": 9.247676849365234,
+        "target_layer_name": "resnet18.layer4.1.conv2",
+        "activation_shape": [
+          1,
+          512,
+          7,
+          7
+        ],
+        "gradient_shape": [
+          1,
+          512,
+          7,
+          7
+        ],
+        "cam_shape": [
+          224,
+          224
+        ],
+        "cam_min": 0.0,
+        "cam_max": 1.0
+      },
+      "reproduction_check": {
+        "raw_logit_absolute_error": 0.0,
+        "probability_absolute_error": 0.0,
+        "prediction_matches": true
+      }
+    },
+    {
+      "selection_type": "HIGH_CONFIDENCE_FALSE_POSITIVE_1",
+      "selection_reason": "False Positive 중 잘못된 예측 확신도가 가장 높은 표본",
+      "sample_index": 202,
+      "image_path": "data/raw/casting_product_images/casting_data/casting_data/test/ok_front/cast_ok_0_7839.jpeg",
+      "ground_truth_label": 0,
+      "ground_truth_class_name": "NORMAL",
+      "prediction": 1,
+      "prediction_class_name": "DEFECT",
+      "defect_probability": 0.828241229057312,
+      "correct": false,
+      "threshold_distance": 0.328241229057312,
+      "wrong_prediction_confidence": 0.828241229057312,
+      "source_evaluation": {
+        "raw_logit": 1.5732136964797974,
+        "defect_probability": 0.828241229057312,
+        "prediction": 1
+      },
+      "gradcam": {
+        "raw_logit": 1.5732136964797974,
+        "defect_probability": 0.828241229057312,
+        "prediction": 1,
+        "prediction_class_name": "DEFECT",
+        "target_class": "DEFECT",
+        "target_score_mode": "raw_logit",
+        "target_score_value": 1.5732136964797974,
+        "target_layer_name": "resnet18.layer4.1.conv2",
+        "activation_shape": [
+          1,
+          512,
+          7,
+          7
+        ],
+        "gradient_shape": [
+          1,
+          512,
+          7,
+          7
+        ],
+        "cam_shape": [
+          224,
+          224
+        ],
+        "cam_min": 0.0,
+        "cam_max": 0.9999999403953552
+      },
+      "reproduction_check": {
+        "raw_logit_absolute_error": 0.0,
+        "probability_absolute_error": 0.0,
+        "prediction_matches": true
+      }
+    },
+    {
+      "selection_type": "HIGH_CONFIDENCE_FALSE_POSITIVE_2",
+      "selection_reason": "False Positive 중 잘못된 예측 확신도가 두 번째로 높은 고유 표본",
+      "sample_index": 21,
+      "image_path": "data/raw/casting_product_images/casting_data/casting_data/test/ok_front/cast_ok_0_1121.jpeg",
+      "ground_truth_label": 0,
+      "ground_truth_class_name": "NORMAL",
+      "prediction": 1,
+      "prediction_class_name": "DEFECT",
+      "defect_probability": 0.8256680369377136,
+      "correct": false,
+      "threshold_distance": 0.3256680369377136,
+      "wrong_prediction_confidence": 0.8256680369377136,
+      "source_evaluation": {
+        "raw_logit": 1.5552314519882202,
+        "defect_probability": 0.8256680369377136,
+        "prediction": 1
+      },
+      "gradcam": {
+        "raw_logit": 1.5552314519882202,
+        "defect_probability": 0.8256680369377136,
+        "prediction": 1,
+        "prediction_class_name": "DEFECT",
+        "target_class": "DEFECT",
+        "target_score_mode": "raw_logit",
+        "target_score_value": 1.5552314519882202,
+        "target_layer_name": "resnet18.layer4.1.conv2",
+        "activation_shape": [
+          1,
+          512,
+          7,
+          7
+        ],
+        "gradient_shape": [
+          1,
+          512,
+          7,
+          7
+        ],
+        "cam_shape": [
+          224,
+          224
+        ],
+        "cam_min": 0.0,
+        "cam_max": 0.9999998807907104
+      },
+      "reproduction_check": {
+        "raw_logit_absolute_error": 0.0,
+        "probability_absolute_error": 0.0,
+        "prediction_matches": true
+      }
+    },
+    {
+      "selection_type": "HIGH_CONFIDENCE_FALSE_NEGATIVE",
+      "selection_reason": "False Negative 중 잘못된 예측 확신도가 가장 높은 표본",
+      "sample_index": 342,
+      "image_path": "data/raw/casting_product_images/casting_data/casting_data/test/def_front/cast_def_0_150.jpeg",
+      "ground_truth_label": 1,
+      "ground_truth_class_name": "DEFECT",
+      "prediction": 0,
+      "prediction_class_name": "NORMAL",
+      "defect_probability": 0.2565053403377533,
+      "correct": false,
+      "threshold_distance": 0.2434946596622467,
+      "wrong_prediction_confidence": 0.7434946596622467,
+      "source_evaluation": {
+        "raw_logit": -1.0642120838165283,
+        "defect_probability": 0.2565053403377533,
+        "prediction": 0
+      },
+      "gradcam": {
+        "raw_logit": -1.0642120838165283,
+        "defect_probability": 0.2565053403377533,
+        "prediction": 0,
+        "prediction_class_name": "NORMAL",
+        "target_class": "NORMAL",
+        "target_score_mode": "negative_raw_logit",
+        "target_score_value": 1.0642120838165283,
+        "target_layer_name": "resnet18.layer4.1.conv2",
+        "activation_shape": [
+          1,
+          512,
+          7,
+          7
+        ],
+        "gradient_shape": [
+          1,
+          512,
+          7,
+          7
+        ],
+        "cam_shape": [
+          224,
+          224
+        ],
+        "cam_min": 0.0,
+        "cam_max": 0.9999998807907104
+      },
+      "reproduction_check": {
+        "raw_logit_absolute_error": 0.0,
+        "probability_absolute_error": 0.0,
+        "prediction_matches": true
+      }
+    },
+    {
+      "selection_type": "BOUNDARY_FALSE_POSITIVE",
+      "selection_reason": "False Positive 중 Threshold 0.5에 가장 가까운 고유 표본",
+      "sample_index": 157,
+      "image_path": "data/raw/casting_product_images/casting_data/casting_data/test/ok_front/cast_ok_0_4497.jpeg",
+      "ground_truth_label": 0,
+      "ground_truth_class_name": "NORMAL",
+      "prediction": 1,
+      "prediction_class_name": "DEFECT",
+      "defect_probability": 0.5041386485099792,
+      "correct": false,
+      "threshold_distance": 0.004138648509979248,
+      "wrong_prediction_confidence": 0.5041386485099792,
+      "source_evaluation": {
+        "raw_logit": 0.01655484363436699,
+        "defect_probability": 0.5041386485099792,
+        "prediction": 1
+      },
+      "gradcam": {
+        "raw_logit": 0.01655484363436699,
+        "defect_probability": 0.5041386485099792,
+        "prediction": 1,
+        "prediction_class_name": "DEFECT",
+        "target_class": "DEFECT",
+        "target_score_mode": "raw_logit",
+        "target_score_value": 0.01655484363436699,
+        "target_layer_name": "resnet18.layer4.1.conv2",
+        "activation_shape": [
+          1,
+          512,
+          7,
+          7
+        ],
+        "gradient_shape": [
+          1,
+          512,
+          7,
+          7
+        ],
+        "cam_shape": [
+          224,
+          224
+        ],
+        "cam_min": 0.0,
+        "cam_max": 0.9999998807907104
+      },
+      "reproduction_check": {
+        "raw_logit_absolute_error": 0.0,
+        "probability_absolute_error": 0.0,
+        "prediction_matches": true
+      }
+    },
+    {
+      "selection_type": "BOUNDARY_FALSE_NEGATIVE",
+      "selection_reason": "False Negative 중 Threshold 0.5에 가장 가까운 고유 표본",
+      "sample_index": 384,
+      "image_path": "data/raw/casting_product_images/casting_data/casting_data/test/def_front/cast_def_0_1591.jpeg",
+      "ground_truth_label": 1,
+      "ground_truth_class_name": "DEFECT",
+      "prediction": 0,
+      "prediction_class_name": "NORMAL",
+      "defect_probability": 0.4921308159828186,
+      "correct": false,
+      "threshold_distance": 0.007869184017181396,
+      "wrong_prediction_confidence": 0.5078691840171814,
+      "source_evaluation": {
+        "raw_logit": -0.03147940710186958,
+        "defect_probability": 0.4921308159828186,
+        "prediction": 0
+      },
+      "gradcam": {
+        "raw_logit": -0.03147940710186958,
+        "defect_probability": 0.4921308159828186,
+        "prediction": 0,
+        "prediction_class_name": "NORMAL",
+        "target_class": "NORMAL",
+        "target_score_mode": "negative_raw_logit",
+        "target_score_value": 0.03147940710186958,
+        "target_layer_name": "resnet18.layer4.1.conv2",
+        "activation_shape": [
+          1,
+          512,
+          7,
+          7
+        ],
+        "gradient_shape": [
+          1,
+          512,
+          7,
+          7
+        ],
+        "cam_shape": [
+          224,
+          224
+        ],
+        "cam_min": 0.0,
+        "cam_max": 0.9999998807907104
+      },
+      "reproduction_check": {
+        "raw_logit_absolute_error": 0.0,
+        "probability_absolute_error": 0.0,
+        "prediction_matches": true
+      }
+    }
+  ],
+  "runtime": {
+    "duration_seconds": 4.81200489999901
+  },
+  "figures": {
+    "overview": "reports/figures/day6_resnet18_gradcam_overview.png",
+    "high_confidence_errors": "reports/figures/day6_resnet18_gradcam_high_confidence_errors.png",
+    "boundary_errors": "reports/figures/day6_resnet18_gradcam_boundary_errors.png"
+  },
+  "limitations": [
+    "Grad-CAM은 모델이 상대적으로 주목한 영역을 보여주는 설명 보조 수단이다.",
+    "Heatmap은 실제 결함 위치의 정답 Mask 또는 Detection 결과가 아니다.",
+    "강한 활성 영역만으로 예측 오류의 인과관계를 단정할 수 없다."
+  ]
+}
