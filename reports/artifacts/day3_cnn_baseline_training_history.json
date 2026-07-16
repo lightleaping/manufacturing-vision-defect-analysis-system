@@ -1,0 +1,122 @@
+{
+  "project": {
+    "name": "Manufacturing Vision Defect Analysis System",
+    "name_korean": "제조 비전 결함 분석 시스템",
+    "run_name": "day3_cnn_baseline_training"
+  },
+  "environment": {
+    "python_version": "3.11.9",
+    "python_executable": "C:\\Users\\kflow\\Downloads\\manufacturing-vision-defect-analysis-system\\.venv\\Scripts\\python.exe",
+    "torch_version": "2.12.0+cpu",
+    "device": "cpu",
+    "cuda_available": false
+  },
+  "reproducibility": {
+    "random_seed": 42,
+    "deterministic_algorithms": false,
+    "cuda_seed_applied": false
+  },
+  "data": {
+    "image_size": [
+      224,
+      224
+    ],
+    "class_to_index": {
+      "ok_front": 0,
+      "def_front": 1
+    },
+    "index_to_class_name": {
+      "0": "NORMAL",
+      "1": "DEFECT"
+    },
+    "validation_ratio": 0.2,
+    "batch_size": 32,
+    "num_workers": 0,
+    "pin_memory": false,
+    "drop_last": false,
+    "persistent_workers": false,
+    "train_sample_count": 5306,
+    "validation_sample_count": 1327,
+    "test_sample_count": 715,
+    "train_batch_count": 166,
+    "validation_batch_count": 42,
+    "test_batch_count": 23,
+    "test_used_during_training": false
+  },
+  "model": {
+    "name": "CNNBaseline",
+    "module": "src.models.cnn_baseline",
+    "trainable_parameter_count": 6065,
+    "output": "single_binary_raw_logit",
+    "positive_class": "DEFECT"
+  },
+  "training_configuration": {
+    "epoch_count": 5,
+    "loss_function": "BCEWithLogitsLoss",
+    "optimizer": "Adam",
+    "learning_rate": 0.001,
+    "weight_decay": 0.0,
+    "classification_threshold": 0.5,
+    "best_model_selection_metric": "validation_loss"
+  },
+  "best_result": {
+    "epoch_number": 2,
+    "validation_loss": 0.4654988447525668,
+    "validation_accuracy": 0.7694046721929163,
+    "validation_accuracy_percent": 76.94046721929163
+  },
+  "runtime": {
+    "training_duration_seconds": 646.1552239999874
+  },
+  "artifacts": {
+    "checkpoint_path": "models/checkpoints/cnn_baseline_best.pt",
+    "training_history_path": "reports/artifacts/day3_cnn_baseline_training_history.json"
+  },
+  "history": [
+    {
+      "epoch_number": 1,
+      "train_loss": 0.6195150966514877,
+      "train_accuracy": 0.6468149264983039,
+      "train_accuracy_percent": 64.68149264983039,
+      "validation_loss": 0.4763287979584488,
+      "validation_accuracy": 0.8281838733986435,
+      "validation_accuracy_percent": 82.81838733986436
+    },
+    {
+      "epoch_number": 2,
+      "train_loss": 0.4698785627018583,
+      "train_accuracy": 0.7915567282321899,
+      "train_accuracy_percent": 79.15567282321899,
+      "validation_loss": 0.4654988447525668,
+      "validation_accuracy": 0.7694046721929163,
+      "validation_accuracy_percent": 76.94046721929163
+    },
+    {
+      "epoch_number": 3,
+      "train_loss": 0.45523916202314024,
+      "train_accuracy": 0.8021108179419525,
+      "train_accuracy_percent": 80.21108179419525,
+      "validation_loss": 0.49253372593130845,
+      "validation_accuracy": 0.7761868877166541,
+      "validation_accuracy_percent": 77.61868877166542
+    },
+    {
+      "epoch_number": 4,
+      "train_loss": 0.441022327956819,
+      "train_accuracy": 0.8049378062570675,
+      "train_accuracy_percent": 80.49378062570675,
+      "validation_loss": 0.47961036608285623,
+      "validation_accuracy": 0.7852298417483045,
+      "validation_accuracy_percent": 78.52298417483044
+    },
+    {
+      "epoch_number": 5,
+      "train_loss": 0.44041290835439145,
+      "train_accuracy": 0.8062570674707877,
+      "train_accuracy_percent": 80.62570674707878,
+      "validation_loss": 0.5092445081710456,
+      "validation_accuracy": 0.7776940467219292,
+      "validation_accuracy_percent": 77.76940467219292
+    }
+  ]
+}
