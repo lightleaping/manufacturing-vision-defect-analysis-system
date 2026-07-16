@@ -31,3 +31,10 @@ scikit-learn==1.9.0
 # ============================================================
 
 pytest
+
+# Day 7 - FastAPI Image Inference API
+fastapi
+uvicorn
+python-multipart
+httpx
+pydantic

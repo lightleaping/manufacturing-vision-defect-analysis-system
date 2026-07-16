@@ -2202,7 +2202,7 @@ Day 4 평가 JSON과 Day 5 오분류 JSON을 교차 검증한 뒤 다음 대표 
 Generated Samples      : 7
 Runtime                 : 4.81 seconds
 Day 6 Tests             : 40 passed
-Full Regression Tests   : 1204 passed
+Full Regression Tests   : 1255 passed
 PNG Visual Check        : 이상 없음
 ```
 
@@ -2220,3 +2220,89 @@ reports/day6_resnet18_gradcam_explainability_summary.md
 > 보조 수단이다. 실제 결함 위치의 정답 Mask나 Detection 결과로 해석하지 않는다.
 
 <!-- DAY6_GRADCAM_END -->
+
+---
+
+<!-- DAY7_FASTAPI_INFERENCE_START -->
+## Day 7 — FastAPI Image Inference API
+
+ResNet18 Best Checkpoint를 FastAPI Lifespan에서 한 번만 로딩하고,
+업로드한 제조 이미지를 `NORMAL` 또는 `DEFECT`로 분류하는 HTTP 추론 API를
+구현했습니다.
+
+### Endpoint
+
+```text
+GET  /api/v1/health
+POST /api/v1/predictions
+GET  /docs
+GET  /redoc
+```
+
+### Inference Flow
+
+```text
+UploadFile
+→ 제한 크기 읽기
+→ 확장자·Content-Type·실제 Decode 형식 검증
+→ RGB 변환
+→ Day 2 Test Transform
+→ ResNet18 Raw Logit
+→ Sigmoid
+→ Threshold 0.5
+→ NORMAL / DEFECT JSON
+```
+
+모델은 요청마다 다시 로딩하지 않습니다.
+FastAPI Lifespan에서 `resnet18_transfer_best.pt`를 한 번 복원하고
+`app.state.inference_service`에 저장합니다.
+
+### Validation Policy
+
+```text
+Supported: JPEG, JPG, PNG
+Maximum Upload Size: 10 MB
+Maximum Pixel Count: 25,000,000
+Positive Class: DEFECT
+Classification Threshold: 0.5
+```
+
+### Real HTTP Validation
+
+```text
+Health Model Loaded : true
+Model               : ResNet18Transfer
+Device              : cpu
+
+NORMAL Image        : cast_ok_0_7631.jpeg
+NORMAL Prediction   : NORMAL
+NORMAL P(DEFECT)    : 0.013476800174
+
+DEFECT Image        : cast_def_0_1414.jpeg
+DEFECT Prediction   : DEFECT
+DEFECT P(DEFECT)    : 0.999903678894
+```
+
+Artifact:
+
+```text
+reports/artifacts/day7_fastapi_inference_validation.json
+```
+
+Report:
+
+```text
+reports/day7_fastapi_image_inference_api_summary.md
+```
+
+Tests:
+
+```text
+Day 7 API Tests      : 40 passed
+Full Regression Tests: 1255 passed
+```
+
+현재 Prediction Endpoint는 빠른 일반 추론만 담당합니다.
+Grad-CAM은 Gradient·Hook·Backward가 필요한 별도 책임이므로 향후 Explain
+Endpoint로 분리할 수 있습니다.
+<!-- DAY7_FASTAPI_INFERENCE_END -->

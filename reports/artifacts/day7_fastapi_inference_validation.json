@@ -1,0 +1,53 @@
+{
+  "project": "Manufacturing Vision Defect Analysis System",
+  "run_name": "day7_fastapi_inference_validation",
+  "base_url": "http://127.0.0.1:8000",
+  "health": {
+    "status": "ok",
+    "service": "Manufacturing Vision Defect Analysis System",
+    "model_loaded": true,
+    "model_name": "ResNet18Transfer",
+    "device": "cpu"
+  },
+  "normal_image": {
+    "path": "data/raw/casting_product_images/casting_data/casting_data/test/ok_front/cast_ok_0_7631.jpeg",
+    "response": {
+      "prediction": 0,
+      "prediction_class_name": "NORMAL",
+      "defect_probability": 0.013476800173521042,
+      "normal_probability": 0.986523199826479,
+      "raw_logit": -4.293217182159424,
+      "classification_threshold": 0.5,
+      "model_name": "ResNet18Transfer",
+      "model_version": "resnet18_transfer_best",
+      "positive_class": "DEFECT",
+      "original_filename": "cast_ok_0_7631.jpeg",
+      "content_type": "image/jpeg",
+      "image_width": 300,
+      "image_height": 300,
+      "image_mode": "RGB",
+      "inference_time_ms": 196.58999999955995
+    }
+  },
+  "defect_image": {
+    "path": "data/raw/casting_product_images/casting_data/casting_data/test/def_front/cast_def_0_1414.jpeg",
+    "response": {
+      "prediction": 1,
+      "prediction_class_name": "DEFECT",
+      "defect_probability": 0.999903678894043,
+      "normal_probability": 9.632110595703125e-05,
+      "raw_logit": 9.247676849365234,
+      "classification_threshold": 0.5,
+      "model_name": "ResNet18Transfer",
+      "model_version": "resnet18_transfer_best",
+      "positive_class": "DEFECT",
+      "original_filename": "cast_def_0_1414.jpeg",
+      "content_type": "image/jpeg",
+      "image_width": 300,
+      "image_height": 300,
+      "image_mode": "RGB",
+      "inference_time_ms": 54.83220000314759
+    }
+  },
+  "runtime_seconds": 14.2148726000014
+}
