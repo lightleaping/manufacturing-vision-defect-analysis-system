@@ -2432,3 +2432,25 @@ Detection:      이미지 → 결함 Class + Bounding Box + Confidence
 
 자세한 결과는 `reports/day9_object_detection_dataset_analysis_summary.md`와 Day 9 Artifact·Figure에서 확인할 수 있습니다.
 <!-- DAY9_OBJECT_DETECTION_DATASET_END -->
+
+<!-- DAY10_OPENCV_IMAGE_ANALYSIS_START -->
+## Day 10 — OpenCV Image Analysis Pipeline
+
+OpenCV 기반으로 이미지의 명암·경계·Threshold·형태 특성을 계산하는 독립 보조 분석 파이프라인을 구현했습니다.
+
+```text
+Pipeline:
+Original → Grayscale → Histogram → CLAHE → Gaussian Blur
+→ Canny Edge → Adaptive Threshold → Morphology
+→ Contour Candidate Overlay
+```
+
+- 실제 분석 샘플: Casting NORMAL, Casting DEFECT, NEU-DET Defect Image
+- 결과 분리: JSON 직렬화 가능한 Metrics / PNG 표시용 이미지
+- Figure: Pipeline Overview, Histogram·Metrics, Contour Candidate Analysis
+- Day 10 대상 테스트: **62 passed**
+- 전체 회귀 테스트: **1440 passed, 1 warning**
+- 보고서: `reports/day10_opencv_image_analysis_pipeline_summary.md`
+
+> OpenCV Contour는 Threshold·Morphology 기반 후보 형태이며 실제 결함 Ground Truth나 객체 탐지 Bounding Box가 아닙니다.
+<!-- DAY10_OPENCV_IMAGE_ANALYSIS_END -->

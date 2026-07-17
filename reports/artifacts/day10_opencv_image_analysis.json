@@ -1,0 +1,160 @@
+{
+  "schema_version": "1.0",
+  "project_name": "Manufacturing Vision Defect Analysis System",
+  "project_name_ko": "제조 비전 결함 분석 시스템",
+  "day": 10,
+  "title": "OpenCV Image Analysis Pipeline",
+  "generated_at_utc": "2026-07-17T00:56:10.485941+00:00",
+  "analysis_scope": "OpenCV-based brightness, edge and morphology-assisted image analysis. This is not classification or object detection.",
+  "interpretation_policy": {
+    "classification": "Determines whether the whole image is NORMAL or DEFECT.",
+    "opencv_analysis": "Provides deterministic brightness, edge, threshold and morphology calculations for human inspection.",
+    "object_detection": "A trained model predicts defect class, location and confidence.",
+    "contour_warning": "Contours are threshold/morphology candidates, not defect ground truth or object-detection bounding boxes.",
+    "dataset_comparison_warning": "Casting and NEU-DET have different meanings; their metric values are not model-performance comparisons."
+  },
+  "dependency_versions": {
+    "opencv_python": "4.13.0.92",
+    "cv2": "4.13.0",
+    "numpy": "2.4.6",
+    "pillow": "12.3.0",
+    "matplotlib": "3.11.0"
+  },
+  "config": {
+    "clahe_clip_limit": 2.0,
+    "clahe_tile_grid_size": [
+      8,
+      8
+    ],
+    "gaussian_kernel_size": [
+      5,
+      5
+    ],
+    "gaussian_sigma_x": 0.0,
+    "canny_low_threshold": 50,
+    "canny_high_threshold": 150,
+    "adaptive_threshold_block_size": 11,
+    "adaptive_threshold_c": 2.0,
+    "adaptive_threshold_invert": true,
+    "morphology_kernel_size": [
+      3,
+      3
+    ],
+    "morphology_open_iterations": 1,
+    "morphology_close_iterations": 1,
+    "min_contour_area_ratio": 0.0005,
+    "max_contours": 500,
+    "contour_line_thickness": 1
+  },
+  "sample_count": 3,
+  "samples": [
+    {
+      "sample_id": "casting_normal",
+      "dataset_name": "Casting Product Image Data for Quality Inspection",
+      "semantic_role": "Casting NORMAL",
+      "class_name": "NORMAL",
+      "image_path": "data/raw/casting_product_images/casting_data/casting_data/test/ok_front/cast_ok_0_7631.jpeg",
+      "filename": "cast_ok_0_7631.jpeg",
+      "file_size_bytes": 11013,
+      "sha256": "b833271ecba774b4f20edab7797307dcb1638b2c00e439ea7a1162beb2120479",
+      "source_image": {
+        "format": "JPEG",
+        "mode": "RGB",
+        "width": 300,
+        "height": 300
+      },
+      "metrics": {
+        "width": 300,
+        "height": 300,
+        "channels": 3,
+        "grayscale_min": 0,
+        "grayscale_max": 255,
+        "mean_brightness": 151.4958,
+        "brightness_standard_deviation": 66.03128,
+        "histogram_peak": 180,
+        "histogram_peak_count": 2490,
+        "otsu_threshold": 116.0,
+        "edge_pixel_ratio": 0.037011,
+        "threshold_foreground_ratio": 0.231433,
+        "contour_count": 7,
+        "largest_contour_area_ratio": 0.590917,
+        "average_contour_area_ratio": 0.085294
+      },
+      "interpretation": "OpenCV statistics and threshold-based contour candidates; not object-detection predictions or ground truth."
+    },
+    {
+      "sample_id": "casting_defect",
+      "dataset_name": "Casting Product Image Data for Quality Inspection",
+      "semantic_role": "Casting DEFECT",
+      "class_name": "DEFECT",
+      "image_path": "data/raw/casting_product_images/casting_data/casting_data/test/def_front/cast_def_0_1414.jpeg",
+      "filename": "cast_def_0_1414.jpeg",
+      "file_size_bytes": 10149,
+      "sha256": "98f51699165e833d81c55e510ee92bc06504c6fcd9cf63bcf9187aa4c4147938",
+      "source_image": {
+        "format": "JPEG",
+        "mode": "RGB",
+        "width": 300,
+        "height": 300
+      },
+      "metrics": {
+        "width": 300,
+        "height": 300,
+        "channels": 3,
+        "grayscale_min": 0,
+        "grayscale_max": 255,
+        "mean_brightness": 131.717222,
+        "brightness_standard_deviation": 54.714852,
+        "histogram_peak": 158,
+        "histogram_peak_count": 3426,
+        "otsu_threshold": 110.0,
+        "edge_pixel_ratio": 0.052589,
+        "threshold_foreground_ratio": 0.209833,
+        "contour_count": 20,
+        "largest_contour_area_ratio": 0.194039,
+        "average_contour_area_ratio": 0.013709
+      },
+      "interpretation": "OpenCV statistics and threshold-based contour candidates; not object-detection predictions or ground truth."
+    },
+    {
+      "sample_id": "neu_det_crazing",
+      "dataset_name": "NEU Surface Defect Database (NEU-DET)",
+      "semantic_role": "NEU-DET Defect Image",
+      "class_name": "crazing",
+      "image_path": "data/raw/neu_det/NEU-DET/train/images/crazing/crazing_1.jpg",
+      "filename": "crazing_1.jpg",
+      "file_size_bytes": 22873,
+      "sha256": "5278cd3695adbcbd7a16a7e4b2c6bc27f18095ab8a1e034d2b06c0fc42020eca",
+      "source_image": {
+        "format": "JPEG",
+        "mode": "RGB",
+        "width": 200,
+        "height": 200
+      },
+      "metrics": {
+        "width": 200,
+        "height": 200,
+        "channels": 3,
+        "grayscale_min": 60,
+        "grayscale_max": 255,
+        "mean_brightness": 160.6365,
+        "brightness_standard_deviation": 28.498493,
+        "histogram_peak": 161,
+        "histogram_peak_count": 581,
+        "otsu_threshold": 144.0,
+        "edge_pixel_ratio": 0.307775,
+        "threshold_foreground_ratio": 0.4254,
+        "contour_count": 83,
+        "largest_contour_area_ratio": 0.0459,
+        "average_contour_area_ratio": 0.003806
+      },
+      "interpretation": "OpenCV statistics and threshold-based contour candidates; not object-detection predictions or ground truth."
+    }
+  ],
+  "artifacts": {
+    "analysis_json": "reports/artifacts/day10_opencv_image_analysis.json",
+    "pipeline_overview_figure": "reports/figures/day10_opencv_pipeline_overview.png",
+    "histogram_and_metrics_figure": "reports/figures/day10_opencv_histogram_and_metrics.png",
+    "contour_analysis_figure": "reports/figures/day10_opencv_contour_analysis.png"
+  }
+}

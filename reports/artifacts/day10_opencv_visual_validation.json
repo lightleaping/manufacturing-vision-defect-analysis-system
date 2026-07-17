@@ -1,0 +1,49 @@
+{
+  "schema_version": "1.0",
+  "project_name": "Manufacturing Vision Defect Analysis System",
+  "project_name_ko": "제조 비전 결함 분석 시스템",
+  "day": 10,
+  "title": "OpenCV Visual Validation",
+  "validated_at_utc": "2026-07-17T01:05:59.324286+00:00",
+  "analysis_artifact": "reports/artifacts/day10_opencv_image_analysis.json",
+  "automated_figure_checks": {
+    "pipeline_overview": {
+      "path": "reports/figures/day10_opencv_pipeline_overview.png",
+      "exists": true,
+      "size_bytes": 2352379,
+      "pillow_decode": true,
+      "format": "PNG",
+      "width": 3376,
+      "height": 1571
+    },
+    "histogram_and_metrics": {
+      "path": "reports/figures/day10_opencv_histogram_and_metrics.png",
+      "exists": true,
+      "size_bytes": 392189,
+      "pillow_decode": true,
+      "format": "PNG",
+      "width": 2116,
+      "height": 2116
+    },
+    "contour_analysis": {
+      "path": "reports/figures/day10_opencv_contour_analysis.png",
+      "exists": true,
+      "size_bytes": 1313990,
+      "pillow_decode": true,
+      "format": "PNG",
+      "width": 2036,
+      "height": 1990
+    }
+  },
+  "automated_checks_passed": true,
+  "manual_checks": {
+    "pipeline_overview": "pass",
+    "histogram_and_metrics": "pass",
+    "contour_analysis": "pass",
+    "contour_candidate_disclaimer": "pass"
+  },
+  "manual_checks_passed": true,
+  "validation_passed": true,
+  "notes": "All three figures were manually reviewed. Layout, RGB display, metrics readability, and contour-candidate disclaimer were confirmed.",
+  "interpretation": "Contour overlays were reviewed as threshold/morphology-based candidates, not defect ground truth or detection predictions."
+}
