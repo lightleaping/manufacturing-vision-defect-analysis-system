@@ -1,0 +1,65 @@
+{
+  "stage": "day13_detection_fastapi_streamlit_integration",
+  "completion_scope": {
+    "detection_api": true,
+    "actual_best_checkpoint_smoke_test": true,
+    "detection_dashboard_api_client": true,
+    "prediction_overlay": true,
+    "prediction_table": true,
+    "opencv_detection_distinction": true,
+    "manual_browser_check_status": "not_recorded",
+    "day14_final_integration_completed": false,
+    "portfolio_completed": false,
+    "interview_answers_completed": false
+  },
+  "tests": {
+    "targeted_test_count": 92,
+    "regression_test_count": 1668,
+    "warning_count": 1
+  },
+  "evidence": {
+    "required_implementation_files": {
+      "src/api/detection_config.py": true,
+      "src/api/detection_inference_service.py": true,
+      "src/api/detection_model_loader.py": true,
+      "src/dashboard/detection_api_client.py": true,
+      "src/dashboard/detection_session_state.py": true,
+      "src/dashboard/detection_ui_helpers.py": true,
+      "src/dashboard/detection_page.py": true,
+      "src/dashboard/pages/2_Detection.py": true
+    },
+    "checkpoint": {
+      "path": "models/detection/day12_detection_best.pt",
+      "size_bytes": 152015461,
+      "epoch": 3,
+      "best_validation_map_50": 0.6774182169290722
+    },
+    "api": {
+      "endpoint": "/api/v1/detection/predictions",
+      "architecture": "fasterrcnn_mobilenet_v3_large_320_fpn",
+      "default_score_threshold": 0.5,
+      "minimum_score_threshold": 0.05,
+      "maximum_score_threshold": 0.95,
+      "iou_threshold": 0.5,
+      "smoke_image_path": "C:\\Users\\kflow\\Downloads\\manufacturing-vision-defect-analysis-system\\data\\raw\\neu_det\\NEU-DET\\train\\images\\crazing\\crazing_1.jpg",
+      "smoke_detection_count": 0,
+      "smoke_inference_time_ms": 321.3547000050312
+    },
+    "dashboard": {
+      "api_client_only": true,
+      "overlay_figure": "reports/figures/day13_detection_dashboard_overlay.png",
+      "validation_image_path": "C:\\Users\\kflow\\Downloads\\manufacturing-vision-defect-analysis-system\\data\\raw\\neu_det\\NEU-DET\\train\\images\\crazing\\crazing_1.jpg",
+      "detection_count": 0,
+      "inference_time_ms": 414.0359000011813,
+      "checkpoint_epoch": 3,
+      "forbidden_imports": []
+    },
+    "artifacts": {
+      "prerequisites": "reports/artifacts/day13_integration_prerequisites.json",
+      "api_inspection": "reports/artifacts/day13_detection_api_stage1_inspection.json",
+      "api_smoke": "reports/artifacts/day13_detection_api_smoke_test.json",
+      "dashboard_inspection": "reports/artifacts/day13_detection_dashboard_stage2_inspection.json",
+      "dashboard_validation": "reports/artifacts/day13_detection_dashboard_api_client_validation.json"
+    }
+  }
+}

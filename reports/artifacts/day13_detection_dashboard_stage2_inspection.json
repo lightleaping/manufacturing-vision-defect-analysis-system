@@ -1,0 +1,38 @@
+{
+  "stage": "day13_detection_dashboard_stage2",
+  "project_root": "C:\\Users\\kflow\\Downloads\\manufacturing-vision-defect-analysis-system",
+  "files": {
+    "src/dashboard/detection_api_client.py": true,
+    "src/dashboard/detection_session_state.py": true,
+    "src/dashboard/detection_ui_helpers.py": true,
+    "src/dashboard/detection_page.py": true,
+    "src/dashboard/pages/2_Detection.py": true,
+    "tests/test_detection_dashboard_api_client.py": true,
+    "tests/test_detection_dashboard_session_state.py": true,
+    "tests/test_detection_dashboard_ui_helpers.py": true,
+    "tests/test_detection_dashboard_page.py": true
+  },
+  "page_imports": [
+    "__future__",
+    "src.dashboard.config",
+    "src.dashboard.detection_api_client",
+    "src.dashboard.detection_session_state",
+    "src.dashboard.detection_ui_helpers",
+    "src.dashboard.ui_helpers",
+    "streamlit",
+    "typing"
+  ],
+  "forbidden_imports": [],
+  "checks": {
+    "required_files_exist": true,
+    "detection_endpoint_present": true,
+    "default_threshold_is_0_5": true,
+    "threshold_range_present": true,
+    "api_client_only": true,
+    "prediction_overlay_present": true,
+    "prediction_table_present": true,
+    "opencv_distinction_present": true,
+    "ground_truth_warning_present": true
+  },
+  "validation_passed": true
+}

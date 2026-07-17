@@ -1,0 +1,153 @@
+{
+  "schema_version": 1,
+  "day": 11,
+  "title": "Detection Model Forward and Loss Smoke Test",
+  "project_name": "Manufacturing Vision Defect Analysis System",
+  "project_name_ko": "제조 비전 결함 분석 시스템",
+  "generated_at_utc": "2026-07-17T02:57:34.790803+00:00",
+  "environment": {
+    "python": "3.11.9",
+    "torch": "2.12.0+cpu",
+    "torchvision": "0.27.0+cpu",
+    "cuda_available": false,
+    "device": "cpu",
+    "torch_num_threads_for_smoke_test": 2
+  },
+  "execution_policy": {
+    "full_training_executed": false,
+    "optimizer_step_executed": false,
+    "backward_executed": false,
+    "pretrained_weight_download_requested": false,
+    "pretrained_weight_download_executed": false,
+    "purpose": "Training/Evaluation forward contract validation before Day 12.",
+    "smoke_only_proposal_limits": {
+      "rpn_pre_nms_top_n_train": 40,
+      "rpn_post_nms_top_n_train": 20,
+      "rpn_pre_nms_top_n_test": 20,
+      "rpn_post_nms_top_n_test": 10,
+      "box_detections_per_img": 10
+    },
+    "smoke_input_resize": [
+      64,
+      64
+    ],
+    "day12_note": "Day 12 pretrained fine-tuning uses the same model factory without smoke-only proposal limits."
+  },
+  "source_sample": {
+    "split": "train",
+    "sample_index": 0,
+    "record_id": "train/crazing_1",
+    "image_path": "data/raw/neu_det/NEU-DET/train/images/crazing/crazing_1.jpg",
+    "annotation_path": "data/raw/neu_det/NEU-DET/train/annotations/crazing_1.xml",
+    "image_shape": [
+      3,
+      200,
+      200
+    ],
+    "box_count": 1,
+    "labels": [
+      1
+    ]
+  },
+  "model": {
+    "architecture": "fasterrcnn_mobilenet_v3_large_320_fpn",
+    "device": "cpu",
+    "training_mode": false,
+    "num_defect_classes": 6,
+    "num_classes_with_background": 7,
+    "class_to_index": {
+      "crazing": 1,
+      "inclusion": 2,
+      "patches": 3,
+      "pitted_surface": 4,
+      "rolled_in_scale": 5,
+      "scratches": 6
+    },
+    "min_size": 64,
+    "max_size": 64,
+    "pretrained_detection_weights": null,
+    "pretrained_backbone_weights": null,
+    "network_download_requested": false,
+    "predictor_output_classes": 7,
+    "proposal_limits": {
+      "rpn_pre_nms_top_n_train": 40,
+      "rpn_post_nms_top_n_train": 20,
+      "rpn_pre_nms_top_n_test": 20,
+      "rpn_post_nms_top_n_test": 10,
+      "box_detections_per_img": 10
+    }
+  },
+  "smoke_test": {
+    "training_forward": {
+      "mode": "train",
+      "gradient_tracking": false,
+      "backward_executed": false,
+      "elapsed_seconds": 0.254801,
+      "loss_keys": [
+        "loss_classifier",
+        "loss_box_reg",
+        "loss_objectness",
+        "loss_rpn_box_reg"
+      ],
+      "losses": {
+        "loss_classifier": 1.9586652517318726,
+        "loss_box_reg": 1.202479362487793,
+        "loss_objectness": 0.6908736824989319,
+        "loss_rpn_box_reg": 0.0005821292870678008
+      },
+      "total_loss": 3.852600426005665
+    },
+    "evaluation_forward": {
+      "mode": "eval",
+      "elapsed_seconds": 0.068781,
+      "predictions": [
+        {
+          "prediction_index": 0,
+          "box_count": 10,
+          "boxes_shape": [
+            10,
+            4
+          ],
+          "labels_shape": [
+            10
+          ],
+          "scores_shape": [
+            10
+          ],
+          "max_score": 0.1469317078590393,
+          "min_score": 0.14385102689266205,
+          "unique_labels": [
+            1,
+            2,
+            4
+          ]
+        }
+      ]
+    },
+    "checks": {
+      "model_device_is_cpu": true,
+      "expected_loss_keys_present": true,
+      "all_losses_finite": true,
+      "prediction_count_matches_input": true,
+      "prediction_contract_valid": true,
+      "inputs_unchanged": true,
+      "model_mode_restored": true
+    },
+    "validation_passed": true
+  },
+  "artifacts": {
+    "analysis_json": "reports/artifacts/day11_detection_model_smoke_test.json",
+    "prediction_figure": {
+      "path": "C:/Users/kflow/Downloads/manufacturing-vision-defect-analysis-system/reports/figures/day11_detection_model_predictions_smoke_test.png",
+      "semantic_role": "random_initialization_detection_smoke_prediction",
+      "size_bytes": 99653,
+      "width": 1080,
+      "height": 334,
+      "format": "PNG",
+      "decode_valid": true,
+      "displayed_prediction_count": 10,
+      "interpretation": "Random-initialization model forward structure validation; not trained detection performance or a Day 12 evaluation result."
+    }
+  },
+  "validation_passed": true
+}

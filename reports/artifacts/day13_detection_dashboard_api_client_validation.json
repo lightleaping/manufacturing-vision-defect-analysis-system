@@ -1,0 +1,15 @@
+{
+  "stage": "day13_detection_dashboard_api_client_validation",
+  "api_base_url": "http://127.0.0.1:8000",
+  "endpoint": "/api/v1/detection/predictions",
+  "image_path": "C:\\Users\\kflow\\Downloads\\manufacturing-vision-defect-analysis-system\\data\\raw\\neu_det\\NEU-DET\\train\\images\\crazing\\crazing_1.jpg",
+  "score_threshold": 0.5,
+  "detection_count": 0,
+  "inference_time_ms": 414.0359000011813,
+  "checkpoint_epoch": 3,
+  "checkpoint_metric_name": "map_50",
+  "checkpoint_metric_value": 0.6774182169290722,
+  "detections": [],
+  "overlay_path": "C:\\Users\\kflow\\Downloads\\manufacturing-vision-defect-analysis-system\\reports\\figures\\day13_detection_dashboard_overlay.png",
+  "validation_passed": true
+}

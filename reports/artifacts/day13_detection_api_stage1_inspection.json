@@ -1,0 +1,74 @@
+{
+  "stage": "day13_detection_api_stage1_inspection",
+  "project_root": "C:\\Users\\kflow\\Downloads\\manufacturing-vision-defect-analysis-system",
+  "files": {
+    "src/api/detection_config.py": true,
+    "src/api/detection_inference_service.py": true,
+    "src/api/detection_model_loader.py": true,
+    "src/api/schemas.py": true,
+    "src/api/app.py": true,
+    "tests/test_detection_api_config.py": true,
+    "tests/test_detection_inference_service.py": true,
+    "tests/test_detection_model_loader.py": true,
+    "tests/test_detection_prediction_api.py": true
+  },
+  "checkpoint": {
+    "path": "C:\\Users\\kflow\\Downloads\\manufacturing-vision-defect-analysis-system\\models\\detection\\day12_detection_best.pt",
+    "size_bytes": 152015461,
+    "epoch_index": 2,
+    "epoch_number": 3,
+    "best_metric": 0.6774182169290722,
+    "class_mapping": {
+      "BACKGROUND": 0,
+      "crazing": 1,
+      "inclusion": 2,
+      "patches": 3,
+      "pitted_surface": 4,
+      "rolled_in_scale": 5,
+      "scratches": 6
+    }
+  },
+  "mapping_validation": {
+    "policy": "Label 0 is canonicalized to BACKGROUND; NEU-DET labels 1-6 remain unchanged.",
+    "expected_class_mapping": {
+      "BACKGROUND": 0,
+      "crazing": 1,
+      "inclusion": 2,
+      "patches": 3,
+      "pitted_surface": 4,
+      "rolled_in_scale": 5,
+      "scratches": 6
+    },
+    "checkpoint_class_mapping": {
+      "BACKGROUND": 0,
+      "crazing": 1,
+      "inclusion": 2,
+      "patches": 3,
+      "pitted_surface": 4,
+      "rolled_in_scale": 5,
+      "scratches": 6
+    },
+    "matches": true
+  },
+  "api_policy": {
+    "endpoint": "/api/v1/detection/predictions",
+    "default_score_threshold": 0.5,
+    "minimum_score_threshold": 0.05,
+    "maximum_score_threshold": 0.95,
+    "iou_threshold": 0.5,
+    "device": "cpu",
+    "architecture": "fasterrcnn_mobilenet_v3_large_320_fpn"
+  },
+  "checks": {
+    "required_files_exist": true,
+    "checkpoint_exists": true,
+    "checkpoint_epoch_is_2": true,
+    "checkpoint_best_metric_is_finite": true,
+    "class_mapping_matches": true,
+    "architecture_matches": true,
+    "num_classes_is_7": true,
+    "score_threshold_is_0_5": true,
+    "iou_threshold_is_0_5": true
+  },
+  "validation_passed": true
+}

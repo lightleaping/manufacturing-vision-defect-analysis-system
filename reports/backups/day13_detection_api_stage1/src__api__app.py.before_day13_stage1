@@ -1,4 +1,4 @@
-"""FastAPI Application Factory, Lifespan, Classification·Detection Endpoint."""
+"""FastAPI Application Factory, Lifespan, Health·Prediction Endpoint."""
 
 from __future__ import annotations
 
@@ -11,15 +11,9 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from src.api.config import ApiSettings, DEFAULT_API_SETTINGS
-from src.api.detection_inference_service import DetectionInferenceServiceError
 from src.api.image_validation import ImageValidationError, validate_uploaded_image
 from src.api.inference_service import InferenceServiceError
-from src.api.schemas import (
-    DetectionPredictionResponse,
-    ErrorResponse,
-    HealthResponse,
-    PredictionResponse,
-)
+from src.api.schemas import ErrorResponse, HealthResponse, PredictionResponse
 
 
 ServiceFactory = Callable[[], Any]
@@ -27,21 +21,11 @@ _DEFAULT_FACTORY = object()
 
 
 def _create_default_service() -> Any:
-    """순환 Import와 불필요한 Module 초기화를 피하는 Classification 지연 Import."""
+    """순환 Import와 불필요한 Module 초기화를 피하기 위한 지연 Import."""
 
     from src.api.model_loader import create_production_inference_service
 
     return create_production_inference_service()
-
-
-def _create_default_detection_service() -> Any:
-    """Day 12 Best Checkpoint를 사용하는 Detection Service 지연 Import."""
-
-    from src.api.detection_model_loader import (
-        create_production_detection_inference_service,
-    )
-
-    return create_production_detection_inference_service()
 
 
 def _error_content(*, code: str, message: str) -> dict[str, dict[str, str]]:
@@ -56,15 +40,18 @@ def _error_content(*, code: str, message: str) -> dict[str, dict[str, str]]:
 def create_app(
     *,
     service_factory: ServiceFactory | None | object = _DEFAULT_FACTORY,
-    detection_service_factory: ServiceFactory | None = None,
     settings: ApiSettings = DEFAULT_API_SETTINGS,
 ) -> FastAPI:
     """Production과 Test가 같은 API 구조를 사용하도록 App을 생성한다.
 
-    ``service_factory``를 생략하면 기존 Classification Production Service를
-    Lifespan에서 한 번 로딩한다. 기존 테스트 호환성을 위해 Detection Factory의
-    기본값은 ``None``이다. 실제 Uvicorn용 전역 ``app``은 파일 마지막에서
-    Detection Production Factory를 명시적으로 전달한다.
+    service_factory 생략:
+        실제 ResNet18 Production Service를 Lifespan에서 한 번 로딩한다.
+
+    service_factory=None:
+        Model Not Ready 상태를 의도적으로 만든다.
+
+    Dummy Factory 전달:
+        실제 Checkpoint 없이 API 통합 테스트를 수행한다.
     """
 
     if service_factory is _DEFAULT_FACTORY:
@@ -74,47 +61,30 @@ def create_app(
     else:
         raise TypeError("service_factory must be callable, None, or omitted")
 
-    if detection_service_factory is not None and not callable(
-        detection_service_factory
-    ):
-        raise TypeError("detection_service_factory must be callable or None")
-
     @asynccontextmanager
     async def lifespan(current_app: FastAPI):
         current_app.state.inference_service = None
         current_app.state.model_startup_failed = False
-        current_app.state.detection_inference_service = None
-        current_app.state.detection_model_startup_failed = False
 
         if resolved_service_factory is not None:
             try:
-                # Process 시작 때 Classification Model을 한 번만 로딩한다.
+                # Process 시작 시 한 번만 Model·Checkpoint·Transform을 로딩한다.
                 current_app.state.inference_service = resolved_service_factory()
             except Exception:
+                # 내부 경로, Checkpoint 정보, Stack Trace는 HTTP 응답에 노출하지 않는다.
                 current_app.state.inference_service = None
                 current_app.state.model_startup_failed = True
-
-        if detection_service_factory is not None:
-            try:
-                # Day 12 Best Detection Checkpoint도 Process 시작 때 한 번만 로딩한다.
-                current_app.state.detection_inference_service = (
-                    detection_service_factory()
-                )
-            except Exception:
-                current_app.state.detection_inference_service = None
-                current_app.state.detection_model_startup_failed = True
 
         yield
 
         current_app.state.inference_service = None
-        current_app.state.detection_inference_service = None
 
     application = FastAPI(
         title=settings.service_name,
         version=settings.api_version,
         description=(
-            "ResNet18 이미지 Classification과 Faster R-CNN 결함 Detection을 "
-            "독립 Endpoint로 제공하는 제조 비전 API"
+            "ResNet18 Best Checkpoint를 사용하여 제조 이미지를 "
+            "NORMAL 또는 DEFECT로 분류하는 API"
         ),
         lifespan=lifespan,
         docs_url="/docs",
@@ -213,77 +183,9 @@ def create_app(
         finally:
             await file.close()
 
-    @application.post(
-        "/api/v1/detection/predictions",
-        response_model=DetectionPredictionResponse,
-        responses={
-            400: {"model": ErrorResponse},
-            413: {"model": ErrorResponse},
-            415: {"model": ErrorResponse},
-            500: {"model": ErrorResponse},
-            503: {"model": ErrorResponse},
-        },
-        tags=["Detection"],
-    )
-    async def create_detection_prediction(
-        request: Request,
-        file: UploadFile = File(...),
-        score_threshold: str | None = None,
-    ) -> DetectionPredictionResponse:
-        service = getattr(
-            request.app.state,
-            "detection_inference_service",
-            None,
-        )
-
-        if service is None or not getattr(service, "is_ready", False):
-            raise HTTPException(
-                status_code=503,
-                detail={
-                    "code": "DETECTION_MODEL_NOT_READY",
-                    "message": "Detection 모델이 준비되지 않았습니다.",
-                },
-            )
-
-        try:
-            validated_image = await validate_uploaded_image(
-                file,
-                settings=settings,
-            )
-            return service.predict(
-                validated_image,
-                score_threshold=score_threshold,
-            )
-
-        except ImageValidationError as exc:
-            raise HTTPException(
-                status_code=exc.status_code,
-                detail={"code": exc.code, "message": exc.message},
-            ) from exc
-
-        except DetectionInferenceServiceError as exc:
-            raise HTTPException(
-                status_code=exc.status_code,
-                detail={"code": exc.code, "message": exc.message},
-            ) from exc
-
-        except Exception as exc:
-            raise HTTPException(
-                status_code=500,
-                detail={
-                    "code": "DETECTION_INFERENCE_FAILED",
-                    "message": "Detection 추론 중 내부 오류가 발생했습니다.",
-                },
-            ) from exc
-
-        finally:
-            await file.close()
-
     return application
 
 
-# Uvicorn이 import하는 실제 Production App.
-# Classification과 Detection Service는 Lifespan 시작 시 각각 한 번만 로딩한다.
-app = create_app(
-    detection_service_factory=_create_default_detection_service,
-)
+# Uvicorn에서 import할 실제 Production App.
+# Model은 이 줄에서 로딩되지 않고 Lifespan 시작 시 한 번만 로딩된다.
+app = create_app()

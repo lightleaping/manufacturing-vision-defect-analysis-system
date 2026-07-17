@@ -1,0 +1,319 @@
+{
+  "schema_version": "1.0",
+  "day": 11,
+  "title": "Detection Dataset Runtime Validation",
+  "project_name": "Manufacturing Vision Defect Analysis System",
+  "project_name_ko": "제조 비전 결함 분석 시스템",
+  "generated_at_utc": "2026-07-17T02:32:43.653178+00:00",
+  "dataset_name": "NEU Surface Defect Database (NEU-DET)",
+  "manifest_path": "data/processed/neu_det/splits.json",
+  "coordinate_conversion_policy": "(xmin - 1, ymin - 1, xmax, ymax)",
+  "duplicate_box_policy": "preserve",
+  "class_mapping": {
+    "background": 0,
+    "crazing": 1,
+    "inclusion": 2,
+    "patches": 3,
+    "pitted_surface": 4,
+    "rolled_in_scale": 5,
+    "scratches": 6
+  },
+  "num_classes_including_background": 7,
+  "data_loader_config": {
+    "batch_size": 2,
+    "num_workers": 0,
+    "pin_memory": false,
+    "drop_last": false,
+    "persistent_workers": false,
+    "random_seed": 42,
+    "train_shuffle": true,
+    "validation_shuffle": false,
+    "test_shuffle": false
+  },
+  "totals": {
+    "sample_count": 1800,
+    "box_count": 4189,
+    "raw_exact_duplicate_count": 3
+  },
+  "splits": {
+    "train": {
+      "split": "train",
+      "sample_count": 1440,
+      "compared_record_count": 1440,
+      "manifest_box_count_after_policy": 3335,
+      "dataset_box_count": 3335,
+      "class_box_counts": {
+        "crazing": 527,
+        "inclusion": 852,
+        "patches": 688,
+        "pitted_surface": 345,
+        "rolled_in_scale": 496,
+        "scratches": 427
+      },
+      "boxes_per_image": {
+        "count": 1440,
+        "mean": 2.315972,
+        "median": 2.0,
+        "min": 1.0,
+        "max": 9.0
+      },
+      "image_shape_counts": {
+        "200x200": 1440
+      },
+      "duplicate_box_audit": {
+        "raw_exact_duplicate_count": 3,
+        "effective_exact_duplicate_count": 3,
+        "policy": "preserve"
+      },
+      "checks": {
+        "dataset_length_matches_manifest": true,
+        "all_records_loaded": true,
+        "manifest_and_dataset_box_counts_match": true,
+        "no_sample_contract_errors": true,
+        "all_target_keys_preserved": true,
+        "all_image_ids_stable": true
+      },
+      "errors": [],
+      "validation_passed": true
+    },
+    "validation": {
+      "split": "validation",
+      "sample_count": 178,
+      "compared_record_count": 178,
+      "manifest_box_count_after_policy": 425,
+      "dataset_box_count": 425,
+      "class_box_counts": {
+        "crazing": 83,
+        "inclusion": 85,
+        "patches": 88,
+        "pitted_surface": 45,
+        "rolled_in_scale": 66,
+        "scratches": 58
+      },
+      "boxes_per_image": {
+        "count": 178,
+        "mean": 2.38764,
+        "median": 2.0,
+        "min": 1.0,
+        "max": 8.0
+      },
+      "image_shape_counts": {
+        "200x200": 178
+      },
+      "duplicate_box_audit": {
+        "raw_exact_duplicate_count": 0,
+        "effective_exact_duplicate_count": 0,
+        "policy": "preserve"
+      },
+      "checks": {
+        "dataset_length_matches_manifest": true,
+        "all_records_loaded": true,
+        "manifest_and_dataset_box_counts_match": true,
+        "no_sample_contract_errors": true,
+        "all_target_keys_preserved": true,
+        "all_image_ids_stable": true
+      },
+      "errors": [],
+      "validation_passed": true
+    },
+    "test": {
+      "split": "test",
+      "sample_count": 182,
+      "compared_record_count": 182,
+      "manifest_box_count_after_policy": 429,
+      "dataset_box_count": 429,
+      "class_box_counts": {
+        "crazing": 79,
+        "inclusion": 74,
+        "patches": 105,
+        "pitted_surface": 42,
+        "rolled_in_scale": 66,
+        "scratches": 63
+      },
+      "boxes_per_image": {
+        "count": 182,
+        "mean": 2.357143,
+        "median": 2.0,
+        "min": 1.0,
+        "max": 7.0
+      },
+      "image_shape_counts": {
+        "200x200": 182
+      },
+      "duplicate_box_audit": {
+        "raw_exact_duplicate_count": 0,
+        "effective_exact_duplicate_count": 0,
+        "policy": "preserve"
+      },
+      "checks": {
+        "dataset_length_matches_manifest": true,
+        "all_records_loaded": true,
+        "manifest_and_dataset_box_counts_match": true,
+        "no_sample_contract_errors": true,
+        "all_target_keys_preserved": true,
+        "all_image_ids_stable": true
+      },
+      "errors": [],
+      "validation_passed": true
+    }
+  },
+  "data_loader_validation": {
+    "train": {
+      "first_batch_size": 2,
+      "image_box_counts": [
+        3,
+        2
+      ],
+      "sampler_type": "RandomSampler",
+      "checks": {
+        "images_are_tuple": true,
+        "targets_are_tuple": true,
+        "image_and_target_counts_match": true,
+        "first_batch_size_matches": true,
+        "variable_targets_not_stacked": true,
+        "shuffle_policy_matches": true,
+        "num_workers_is_zero": true,
+        "pin_memory_is_false": true,
+        "drop_last_is_false": true
+      },
+      "validation_passed": true
+    },
+    "validation": {
+      "first_batch_size": 2,
+      "image_box_counts": [
+        2,
+        2
+      ],
+      "sampler_type": "SequentialSampler",
+      "checks": {
+        "images_are_tuple": true,
+        "targets_are_tuple": true,
+        "image_and_target_counts_match": true,
+        "first_batch_size_matches": true,
+        "variable_targets_not_stacked": true,
+        "shuffle_policy_matches": true,
+        "num_workers_is_zero": true,
+        "pin_memory_is_false": true,
+        "drop_last_is_false": true
+      },
+      "validation_passed": true
+    },
+    "test": {
+      "first_batch_size": 2,
+      "image_box_counts": [
+        3,
+        1
+      ],
+      "sampler_type": "SequentialSampler",
+      "checks": {
+        "images_are_tuple": true,
+        "targets_are_tuple": true,
+        "image_and_target_counts_match": true,
+        "first_batch_size_matches": true,
+        "variable_targets_not_stacked": true,
+        "shuffle_policy_matches": true,
+        "num_workers_is_zero": true,
+        "pin_memory_is_false": true,
+        "drop_last_is_false": true
+      },
+      "validation_passed": true
+    }
+  },
+  "split_overlap_validation": {
+    "image_path_overlap_counts": {
+      "train_validation": 0,
+      "train_test": 0,
+      "validation_test": 0
+    },
+    "no_split_image_path_overlap": true
+  },
+  "duplicate_box_records": [
+    {
+      "split": "train",
+      "record_id": "train/crazing_120",
+      "image_path": "NEU-DET\\train\\images\\crazing\\crazing_120.jpg",
+      "annotation_path": "NEU-DET\\train\\annotations\\crazing_120.xml",
+      "duplicates": [
+        {
+          "class_name": "crazing",
+          "box": [
+            1,
+            81,
+            117,
+            146
+          ],
+          "occurrence_count": 2,
+          "duplicate_count": 1
+        }
+      ]
+    },
+    {
+      "split": "train",
+      "record_id": "train/inclusion_62",
+      "image_path": "NEU-DET\\train\\images\\inclusion\\inclusion_62.jpg",
+      "annotation_path": "NEU-DET\\train\\annotations\\inclusion_62.xml",
+      "duplicates": [
+        {
+          "class_name": "inclusion",
+          "box": [
+            39,
+            77,
+            59,
+            140
+          ],
+          "occurrence_count": 2,
+          "duplicate_count": 1
+        }
+      ]
+    },
+    {
+      "split": "train",
+      "record_id": "train/patches_198",
+      "image_path": "NEU-DET\\train\\images\\patches\\patches_198.jpg",
+      "annotation_path": "NEU-DET\\train\\annotations\\patches_198.xml",
+      "duplicates": [
+        {
+          "class_name": "patches",
+          "box": [
+            158,
+            68,
+            200,
+            158
+          ],
+          "occurrence_count": 2,
+          "duplicate_count": 1
+        }
+      ]
+    }
+  ],
+  "checks": {
+    "all_split_validations_passed": true,
+    "all_loader_validations_passed": true,
+    "no_split_image_path_overlap": true,
+    "duplicate_audit_matches_split_counts": true,
+    "all_figures_decodable": true
+  },
+  "validation_passed": true,
+  "figures": {
+    "dataset_batch": {
+      "path": "reports/figures/day11_detection_dataset_batch.png",
+      "semantic_role": "class_representative_dataset_batch",
+      "size_bytes": 270375,
+      "width": 900,
+      "height": 520,
+      "format": "PNG",
+      "decode_valid": true,
+      "interpretation": "Dataset ground-truth target and coordinate-conversion validation; not model predictions or performance results."
+    },
+    "duplicate_target_overlay": {
+      "path": "reports/figures/day11_detection_target_overlay.png",
+      "semantic_role": "duplicate_box_target_overlay",
+      "size_bytes": 160677,
+      "width": 960,
+      "height": 280,
+      "format": "PNG",
+      "decode_valid": true,
+      "interpretation": "Dataset ground-truth target and coordinate-conversion validation; not model predictions or performance results."
+    }
+  }
+}

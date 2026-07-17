@@ -1,0 +1,620 @@
+{
+  "schema_version": 1,
+  "day": 12,
+  "title": "Detection Training Prerequisites",
+  "generated_at_utc": "2026-07-17T03:46:12.464316+00:00",
+  "project_root": "C:\\Users\\kflow\\Downloads\\manufacturing-vision-defect-analysis-system",
+  "environment": {
+    "python": "3.11.9",
+    "torch": "2.12.0+cpu",
+    "torchvision": "0.27.0+cpu",
+    "cuda_available": false,
+    "pytest": "9.1.1"
+  },
+  "execution_policy": {
+    "pretrained_download_requested": false,
+    "pretrained_download_executed": false,
+    "training_executed": false,
+    "backward_executed": false,
+    "optimizer_step_executed": false,
+    "files_deleted": false
+  },
+  "disk": {
+    "free_bytes": 7391883264,
+    "free_gib": 6.884,
+    "minimum_required_gib": 3.0,
+    "recommended_gib": 5.0
+  },
+  "pretrained_weight": {
+    "enum": "FasterRCNN_MobileNet_V3_Large_320_FPN_Weights.COCO_V1",
+    "url": "https://download.pytorch.org/models/fasterrcnn_mobilenet_v3_large_320_fpn-907ea3f9.pth",
+    "expected_filename": "fasterrcnn_mobilenet_v3_large_320_fpn-907ea3f9.pth",
+    "expected_cache_path": "C:\\Users\\kflow\\.cache\\torch\\hub\\checkpoints\\fasterrcnn_mobilenet_v3_large_320_fpn-907ea3f9.pth",
+    "cached": false,
+    "cached_size_bytes": null,
+    "download_size_bytes": null,
+    "download_size_note": "Exact byte size is recorded only when the file already exists. This inspection performs no network request."
+  },
+  "torch_cache": {
+    "root": "C:\\Users\\kflow\\.cache\\torch",
+    "checkpoint_directory": "C:\\Users\\kflow\\.cache\\torch\\hub\\checkpoints",
+    "files": [
+      {
+        "name": "resnet18-f37072fd.pth",
+        "path": "C:\\Users\\kflow\\.cache\\torch\\hub\\checkpoints\\resnet18-f37072fd.pth",
+        "size_bytes": 46830571,
+        "size_mib": 44.661
+      }
+    ]
+  },
+  "primary_paths": {
+    "src/detection/model_config.py": {
+      "path": "src/detection/model_config.py",
+      "exists": true,
+      "is_file": true,
+      "is_directory": false,
+      "size_bytes": 7507
+    },
+    "src/detection/model_factory.py": {
+      "path": "src/detection/model_factory.py",
+      "exists": true,
+      "is_file": true,
+      "is_directory": false,
+      "size_bytes": 8647
+    },
+    "src/detection/detection_dataset.py": {
+      "path": "src/detection/detection_dataset.py",
+      "exists": true,
+      "is_file": true,
+      "is_directory": false,
+      "size_bytes": 19998
+    },
+    "src/detection/data_loader.py": {
+      "path": "src/detection/data_loader.py",
+      "exists": true,
+      "is_file": true,
+      "is_directory": false,
+      "size_bytes": 6615
+    },
+    "data/processed/neu_det/splits.json": {
+      "path": "data/processed/neu_det/splits.json",
+      "exists": true,
+      "is_file": true,
+      "is_directory": false,
+      "size_bytes": 1415985
+    },
+    "reports/artifacts/day11_detection_dataset_validation.json": {
+      "path": "reports/artifacts/day11_detection_dataset_validation.json",
+      "exists": true,
+      "is_file": true,
+      "is_directory": false,
+      "size_bytes": 9179
+    },
+    "reports/artifacts/day11_detection_model_smoke_test.json": {
+      "path": "reports/artifacts/day11_detection_model_smoke_test.json",
+      "exists": true,
+      "is_file": true,
+      "is_directory": false,
+      "size_bytes": 4644
+    },
+    "reports/day11_detection_dataset_and_model_implementation_summary.md": {
+      "path": "reports/day11_detection_dataset_and_model_implementation_summary.md",
+      "exists": true,
+      "is_file": true,
+      "is_directory": false,
+      "size_bytes": 4753
+    },
+    "requirements.txt": {
+      "path": "requirements.txt",
+      "exists": true,
+      "is_file": true,
+      "is_directory": false,
+      "size_bytes": 1043
+    },
+    "README.md": {
+      "path": "README.md",
+      "exists": true,
+      "is_file": true,
+      "is_directory": false,
+      "size_bytes": 41793
+    }
+  },
+  "src_detection_files": [
+    {
+      "path": "src/detection/__init__.py",
+      "exists": true,
+      "is_file": true,
+      "is_directory": false,
+      "size_bytes": 2271,
+      "symbols": []
+    },
+    {
+      "path": "src/detection/annotation_parser.py",
+      "exists": true,
+      "is_file": true,
+      "is_directory": false,
+      "size_bytes": 11499,
+      "symbols": [
+        "AnnotationParseError",
+        "BoundingBox",
+        "DetectionObject",
+        "ParsedAnnotation",
+        "ValidationIssue",
+        "_integer",
+        "_text",
+        "parse_pascal_voc_annotation",
+        "validate_annotation"
+      ]
+    },
+    {
+      "path": "src/detection/checkpoint.py",
+      "exists": true,
+      "is_file": true,
+      "is_directory": false,
+      "size_bytes": 10853,
+      "symbols": [
+        "DetectionCheckpointState",
+        "_plain_mapping",
+        "_validate_checkpoint_path",
+        "_validate_class_mapping",
+        "build_detection_checkpoint_payload",
+        "load_detection_checkpoint_payload",
+        "restore_detection_checkpoint",
+        "save_detection_checkpoint"
+      ]
+    },
+    {
+      "path": "src/detection/data_loader.py",
+      "exists": true,
+      "is_file": true,
+      "is_directory": false,
+      "size_bytes": 6615,
+      "symbols": [
+        "DetectionDataLoaderConfig",
+        "DetectionDataLoaders",
+        "create_detection_data_loader",
+        "create_neu_det_detection_data_loaders",
+        "detection_collate_fn"
+      ]
+    },
+    {
+      "path": "src/detection/dataset_analysis.py",
+      "exists": true,
+      "is_file": true,
+      "is_directory": false,
+      "size_bytes": 32128,
+      "symbols": [
+        "DatasetAnalysisResult",
+        "ImageAnnotationRecord",
+        "_build_cross_partition_record",
+        "_build_unique_stem_map",
+        "_collect_partition_files",
+        "_coordinate_statistics",
+        "_numeric_summary",
+        "_reconcile_cross_partition_pairs",
+        "_relative_or_absolute",
+        "_sha256_file",
+        "_summary_from_records",
+        "analyze_detection_dataset",
+        "combine_analysis_results",
+        "save_analysis_json"
+      ]
+    },
+    {
+      "path": "src/detection/dataset_config.py",
+      "exists": true,
+      "is_file": true,
+      "is_directory": false,
+      "size_bytes": 15392,
+      "symbols": [
+        "DetectionDatasetCollectionLayout",
+        "DetectionDatasetConfig",
+        "DetectionDatasetLayout",
+        "DetectionDatasetPartitionLayout",
+        "SplitRatios",
+        "_contains_supported_file",
+        "_normalization_key",
+        "build_default_config",
+        "build_partition_config",
+        "discover_neu_det_layout",
+        "discover_neu_det_partitions",
+        "normalize_annotation_class_name",
+        "normalize_partition_name"
+      ]
+    },
+    {
+      "path": "src/detection/dataset_runtime_visualization.py",
+      "exists": true,
+      "is_file": true,
+      "is_directory": false,
+      "size_bytes": 8881,
+      "symbols": [
+        "_draw_overlay",
+        "_figure_metadata",
+        "_paste_cell",
+        "_tensor_to_pil",
+        "save_detection_dataset_batch_figure",
+        "save_duplicate_target_overlay_figure"
+      ]
+    },
+    {
+      "path": "src/detection/dataset_split.py",
+      "exists": true,
+      "is_file": true,
+      "is_directory": false,
+      "size_bytes": 17974,
+      "symbols": [
+        "SplitManifest",
+        "_allocate_counts",
+        "_assign_units_to_targets",
+        "_duplicate_hashes",
+        "_duplicate_policy_statistics",
+        "_hash_units",
+        "_record_to_dict",
+        "_split_statistics",
+        "_stratum_key",
+        "_unit_stratum_key",
+        "_validate_unique_paths",
+        "build_existing_split_manifest",
+        "build_source_preserving_split_manifest",
+        "build_split_manifest",
+        "load_split_manifest",
+        "save_split_manifest",
+        "validate_split_manifest"
+      ]
+    },
+    {
+      "path": "src/detection/dataset_validation.py",
+      "exists": true,
+      "is_file": true,
+      "is_directory": false,
+      "size_bytes": 21542,
+      "symbols": [
+        "_apply_manifest_duplicate_policy",
+        "_exact_duplicate_count",
+        "_manifest_records",
+        "_path_overlap_report",
+        "_read_json_object",
+        "_summary",
+        "_validate_loader",
+        "_validate_tensor_contract",
+        "_validated_record_annotations",
+        "build_day11_detection_dataset_validation",
+        "find_manifest_exact_duplicate_records",
+        "validate_detection_split",
+        "write_validation_artifact"
+      ]
+    },
+    {
+      "path": "src/detection/dataset_visualization.py",
+      "exists": true,
+      "is_file": true,
+      "is_directory": false,
+      "size_bytes": 6235,
+      "symbols": [
+        "_prepare_output",
+        "_resolve_dataset_path",
+        "create_annotation_overview_figure",
+        "create_box_statistics_figure",
+        "create_class_distribution_figure"
+      ]
+    },
+    {
+      "path": "src/detection/detection_dataset.py",
+      "exists": true,
+      "is_file": true,
+      "is_directory": false,
+      "size_bytes": 19998,
+      "symbols": [
+        "DetectionSample",
+        "NeuDetDetectionDataset",
+        "ParsedObject",
+        "_extract_split_records",
+        "_first_string",
+        "_normalize_xml_class_name",
+        "_portable_relative_path",
+        "_read_json_object",
+        "_resolve_record_path",
+        "apply_duplicate_box_policy",
+        "convert_voc_box_to_torchvision",
+        "load_detection_samples_from_manifest",
+        "parse_pascal_voc_objects"
+      ]
+    },
+    {
+      "path": "src/detection/iou.py",
+      "exists": true,
+      "is_file": true,
+      "is_directory": false,
+      "size_bytes": 3148,
+      "symbols": [
+        "box_iou",
+        "box_iou_matrix",
+        "validate_xyxy_boxes"
+      ]
+    },
+    {
+      "path": "src/detection/metrics.py",
+      "exists": true,
+      "is_file": true,
+      "is_directory": false,
+      "size_bytes": 18384,
+      "symbols": [
+        "ImageMatchingResult",
+        "MatchedPair",
+        "_average_precision_for_class",
+        "_f1",
+        "_safe_ratio",
+        "_validate_labels",
+        "_validate_prediction",
+        "_validate_probability",
+        "_validate_target",
+        "calculate_detection_metrics",
+        "match_predictions_to_ground_truth"
+      ]
+    },
+    {
+      "path": "src/detection/model_config.py",
+      "exists": true,
+      "is_file": true,
+      "is_directory": false,
+      "size_bytes": 7507,
+      "symbols": [
+        "DetectionModelConfig",
+        "_find_background_class_name",
+        "build_detection_label_maps",
+        "validate_defect_class_names",
+        "validate_duplicate_box_policy",
+        "validate_split_name"
+      ]
+    },
+    {
+      "path": "src/detection/model_factory.py",
+      "exists": true,
+      "is_file": true,
+      "is_directory": false,
+      "size_bytes": 8647,
+      "symbols": [
+        "DetectionModelBuildResult",
+        "DetectionProposalLimits",
+        "_resolve_device",
+        "_resolve_weight_arguments",
+        "create_detection_model",
+        "replace_detection_predictor"
+      ]
+    },
+    {
+      "path": "src/detection/model_smoke_visualization.py",
+      "exists": true,
+      "is_file": true,
+      "is_directory": false,
+      "size_bytes": 11258,
+      "symbols": [
+        "_clone_prediction",
+        "_draw_box_label",
+        "_draw_ground_truth",
+        "_draw_predictions",
+        "_paste_panel",
+        "_tensor_to_pil",
+        "capture_model_smoke_prediction",
+        "save_model_smoke_prediction_figure"
+      ]
+    },
+    {
+      "path": "src/detection/model_validation.py",
+      "exists": true,
+      "is_file": true,
+      "is_directory": false,
+      "size_bytes": 11662,
+      "symbols": [
+        "DetectionModelSmokeResult",
+        "_clone_targets",
+        "_validate_inputs",
+        "_validate_loss_dict",
+        "_validate_predictions",
+        "_verify_unchanged",
+        "run_detection_model_smoke_validation"
+      ]
+    },
+    {
+      "path": "src/detection/training_config.py",
+      "exists": true,
+      "is_file": true,
+      "is_directory": false,
+      "size_bytes": 8103,
+      "symbols": [
+        "DetectionTrainingConfig",
+        "math_is_finite"
+      ]
+    },
+    {
+      "path": "src/detection/transforms.py",
+      "exists": true,
+      "is_file": true,
+      "is_directory": false,
+      "size_bytes": 6716,
+      "symbols": [
+        "Compose",
+        "RandomHorizontalFlip",
+        "ToFloatTensor",
+        "clone_detection_target",
+        "create_detection_transform"
+      ]
+    }
+  ],
+  "model_and_checkpoint_paths": [
+    {
+      "path": "models",
+      "exists": true,
+      "is_file": false,
+      "is_directory": true,
+      "size_bytes": null
+    },
+    {
+      "path": "models/checkpoints/cnn_baseline_best.pt",
+      "exists": true,
+      "is_file": true,
+      "is_directory": false,
+      "size_bytes": 83761
+    },
+    {
+      "path": "models/checkpoints/resnet18_transfer_best.pt",
+      "exists": true,
+      "is_file": true,
+      "is_directory": false,
+      "size_bytes": 44796651
+    },
+    {
+      "path": "checkpoints",
+      "exists": false,
+      "is_file": false,
+      "is_directory": false,
+      "size_bytes": null
+    }
+  ],
+  "existing_training_metric_references": {
+    "checkpoint": [
+      "scripts/create_day10_docs.py",
+      "scripts/create_day11_docs.py",
+      "scripts/create_day6_docs.py",
+      "scripts/create_day7_docs.py",
+      "scripts/create_day8_docs.py",
+      "scripts/inspect_day11_detection_prerequisites.py",
+      "scripts/inspect_day12_training_prerequisites.py",
+      "scripts/inspect_day7_api_prerequisites.py",
+      "scripts/inspect_day7_api_prerequisites_v2.py",
+      "scripts/inspect_day9_detection_prerequisites.py",
+      "scripts/run_day3_cnn_baseline_evaluation.py",
+      "scripts/run_day3_cnn_baseline_training.py",
+      "scripts/run_day4_resnet18_evaluation.py",
+      "scripts/run_day4_resnet18_training.py",
+      "scripts/run_day6_resnet18_gradcam.py",
+      "scripts/run_day7_api_validation.py",
+      "src/api/app.py",
+      "src/api/config.py",
+      "src/api/model_loader.py",
+      "src/detection/checkpoint.py",
+      "src/detection/training_config.py",
+      "src/evaluation/evaluation_runner.py",
+      "src/explainability/gradcam_pipeline.py",
+      "src/training/checkpoint_loader.py",
+      "src/training/training_pipeline.py",
+      "tests/test_api_model_loader.py",
+      "tests/test_checkpoint_loader.py",
+      "tests/test_dashboard_api_client.py",
+      "tests/test_dashboard_app.py",
+      "tests/test_day4_resnet18_evaluation.py",
+      "tests/test_day4_resnet18_training.py",
+      "tests/test_day6_resnet18_gradcam.py",
+      "tests/test_detection_checkpoint.py",
+      "tests/test_epoch_runner.py",
+      "tests/test_gradcam_pipeline.py",
+      "tests/test_prediction_api.py",
+      "tests/test_resnet18_transfer.py",
+      "tests/test_run_day3_cnn_baseline_evaluation.py",
+      "tests/test_training_pipeline.py"
+    ],
+    "optimizer": [
+      "scripts/create_day11_docs.py",
+      "scripts/create_day6_docs.py",
+      "scripts/inspect_day12_training_prerequisites.py",
+      "scripts/run_day11_detection_model_smoke_test.py",
+      "scripts/run_day3_cnn_baseline_evaluation.py",
+      "scripts/run_day3_cnn_baseline_training.py",
+      "scripts/run_day4_resnet18_training.py",
+      "src/data/data_loader.py",
+      "src/detection/checkpoint.py",
+      "src/detection/training_config.py",
+      "src/models/resnet18_transfer.py",
+      "src/training/checkpoint_loader.py",
+      "src/training/epoch_runner.py",
+      "src/training/loss_function.py",
+      "src/training/optimizer.py",
+      "src/training/training_pipeline.py",
+      "tests/test_checkpoint_loader.py",
+      "tests/test_cnn_baseline.py",
+      "tests/test_day4_resnet18_training.py",
+      "tests/test_detection_checkpoint.py",
+      "tests/test_detection_training_config.py",
+      "tests/test_epoch_runner.py",
+      "tests/test_loss_function.py",
+      "tests/test_optimizer.py",
+      "tests/test_resnet18_transfer.py",
+      "tests/test_run_day3_cnn_baseline_evaluation.py",
+      "tests/test_training_pipeline.py"
+    ],
+    "scheduler": [
+      "scripts/inspect_day12_training_prerequisites.py",
+      "src/detection/checkpoint.py",
+      "src/detection/training_config.py",
+      "src/training/optimizer.py",
+      "src/training/training_pipeline.py",
+      "tests/test_detection_checkpoint.py",
+      "tests/test_detection_training_config.py"
+    ],
+    "box_iou": [
+      "scripts/inspect_day12_training_prerequisites.py",
+      "src/detection/iou.py",
+      "src/detection/metrics.py",
+      "tests/test_detection_iou.py"
+    ],
+    "average_precision": [
+      "scripts/inspect_day12_training_prerequisites.py",
+      "src/detection/metrics.py",
+      "tests/test_detection_metrics.py"
+    ],
+    "detection_metrics": [
+      "scripts/inspect_day12_training_prerequisites.py",
+      "src/detection/metrics.py",
+      "tests/test_detection_metrics.py"
+    ],
+    "train_detection": [
+      "scripts/inspect_day12_training_prerequisites.py"
+    ]
+  },
+  "requirements": {
+    "path": "requirements.txt",
+    "contains_torch": true,
+    "contains_torchvision": true,
+    "contains_pycocotools": false,
+    "contains_torchmetrics": false
+  },
+  "weight_free_model_factory": {
+    "status": "PASS",
+    "architecture": "fasterrcnn_mobilenet_v3_large_320_fpn",
+    "device": "cpu",
+    "training_mode": false,
+    "num_defect_classes": 6,
+    "num_classes_with_background": 7,
+    "class_to_index": {
+      "crazing": 1,
+      "inclusion": 2,
+      "patches": 3,
+      "pitted_surface": 4,
+      "rolled_in_scale": 5,
+      "scratches": 6
+    },
+    "min_size": 320,
+    "max_size": 320,
+    "pretrained_detection_weights": null,
+    "pretrained_backbone_weights": null,
+    "network_download_requested": false,
+    "predictor_output_classes": 7,
+    "proposal_limits": null,
+    "total_parameters": 18980254,
+    "trainable_parameters": 18980254,
+    "full_torchvision_proposal_defaults_preserved": true
+  },
+  "checks": {
+    "project_root_exists": true,
+    "all_primary_paths_exist": true,
+    "day11_readme_markers_valid": true,
+    "minimum_free_space_ready": true,
+    "recommended_free_space_ready": true,
+    "pretrained_weight_cached": false,
+    "weight_free_model_factory_compatible": true,
+    "torch_cpu_build": true,
+    "no_new_dependency_required_for_stage1": true
+  },
+  "ready_for_pretrained_download": true
+}

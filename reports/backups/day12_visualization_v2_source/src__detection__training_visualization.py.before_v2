@@ -1,0 +1,351 @@
+"""Day 12 Detection 학습·평가·실패 분석 Figure 생성.
+
+Matplotlib은 Training History와 Class Metric Chart에만 사용한다. Prediction과
+Failure Montage는 Pillow Canvas에 직접 합성하여 Ground Truth·Prediction Box를
+명확히 구분한다.
+"""
+
+from __future__ import annotations
+
+from collections.abc import Mapping, Sequence
+from pathlib import Path
+from typing import Any
+
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+from PIL import Image, ImageDraw, ImageFont
+import torch
+from torch import Tensor
+
+from src.detection.metrics import match_predictions_to_ground_truth
+
+
+_BOX_COLORS = {
+    "ground_truth": "deepskyblue",
+    "correct_prediction": "limegreen",
+    "false_positive": "red",
+    "missed_ground_truth": "orange",
+    "failure_prediction": "magenta",
+}
+
+
+def _validate_output_path(path: Path) -> Path:
+    if not isinstance(path, Path):
+        raise TypeError("output_path must be pathlib.Path.")
+    if path.suffix.lower() != ".png":
+        raise ValueError("Figure output_path must use .png extension.")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+def _atomic_save_figure(figure: Any, path: Path) -> Path:
+    temporary = path.with_name(f".{path.stem}.tmp.png")
+    try:
+        figure.savefig(temporary, dpi=150, bbox_inches="tight")
+        temporary.replace(path)
+    finally:
+        if temporary.exists():
+            temporary.unlink()
+        plt.close(figure)
+    return path
+
+
+def plot_detection_training_history(
+    *,
+    history: Sequence[Mapping[str, Any]],
+    output_path: Path,
+) -> Path:
+    """Epoch별 Train Loss·Validation mAP@0.50·F1을 한 Figure에 그린다."""
+    if isinstance(history, (str, bytes)) or not isinstance(history, Sequence):
+        raise TypeError("history must be a sequence.")
+    if not history:
+        raise ValueError("history must not be empty.")
+    epochs: list[int] = []
+    losses: list[float] = []
+    map_50_values: list[float] = []
+    f1_values: list[float] = []
+    for index, item in enumerate(history):
+        if not isinstance(item, Mapping):
+            raise TypeError(f"history[{index}] must be a mapping.")
+        epoch = int(item["epoch"]) + 1
+        train = item["train"]
+        validation = item["validation"]
+        loss = float(train["average_losses"]["total_loss"])
+        overall = validation["metrics"]["overall"]
+        map_value = overall["map_50"]
+        if map_value is None:
+            raise ValueError("Every history entry must contain validation map_50.")
+        epochs.append(epoch)
+        losses.append(loss)
+        map_50_values.append(float(map_value))
+        f1_values.append(float(overall["f1"]))
+
+    path = _validate_output_path(output_path)
+    figure, axis = plt.subplots(figsize=(8, 5))
+    axis.plot(epochs, losses, marker="o", label="Train total loss")
+    axis.plot(epochs, map_50_values, marker="o", label="Validation mAP@0.50")
+    axis.plot(epochs, f1_values, marker="o", label="Validation F1")
+    axis.set_xlabel("Epoch")
+    axis.set_ylabel("Value")
+    axis.set_title("Day 12 Detection Training History")
+    axis.set_xticks(epochs)
+    axis.grid(True, alpha=0.3)
+    axis.legend()
+    return _atomic_save_figure(figure, path)
+
+
+def plot_detection_class_metrics(
+    *,
+    class_metrics: Mapping[str, Mapping[str, Any]],
+    output_path: Path,
+) -> Path:
+    """Class별 Precision·Recall·AP@0.50을 Grouped Bar로 표시한다."""
+    if not isinstance(class_metrics, Mapping) or not class_metrics:
+        raise ValueError("class_metrics must be a non-empty mapping.")
+    names = list(class_metrics)
+    precision = [float(class_metrics[name]["precision"]) for name in names]
+    recall = [float(class_metrics[name]["recall"]) for name in names]
+    ap_50 = [
+        0.0
+        if class_metrics[name]["ap_50"] is None
+        else float(class_metrics[name]["ap_50"])
+        for name in names
+    ]
+
+    path = _validate_output_path(output_path)
+    positions = list(range(len(names)))
+    width = 0.25
+    figure, axis = plt.subplots(figsize=(11, 5))
+    axis.bar([value - width for value in positions], precision, width, label="Precision")
+    axis.bar(positions, recall, width, label="Recall")
+    axis.bar([value + width for value in positions], ap_50, width, label="AP@0.50")
+    axis.set_xticks(positions, names, rotation=25, ha="right")
+    axis.set_ylim(0.0, 1.0)
+    axis.set_ylabel("Score")
+    axis.set_title("Day 12 Test Class Metrics")
+    axis.grid(True, axis="y", alpha=0.3)
+    axis.legend()
+    return _atomic_save_figure(figure, path)
+
+
+def _tensor_to_pil(image: Tensor) -> Image.Image:
+    if not isinstance(image, Tensor) or image.dtype != torch.float32:
+        raise TypeError("image must be float32 Tensor.")
+    if image.ndim != 3 or image.shape[0] != 3:
+        raise ValueError("image must have shape [3, H, W].")
+    array = (
+        image.detach()
+        .cpu()
+        .clamp(0.0, 1.0)
+        .mul(255.0)
+        .to(dtype=torch.uint8)
+        .permute(1, 2, 0)
+        .numpy()
+    )
+    return Image.fromarray(array, mode="RGB")
+
+
+def _draw_box(
+    draw: ImageDraw.ImageDraw,
+    box: Sequence[float],
+    *,
+    color: str,
+    label: str,
+    width: int = 2,
+) -> None:
+    x1, y1, x2, y2 = (float(value) for value in box)
+    draw.rectangle((x1, y1, x2, y2), outline=color, width=width)
+    text_y = max(0.0, y1 - 12.0)
+    draw.text((x1 + 2.0, text_y), label, fill=color, font=ImageFont.load_default())
+
+
+def _compose_cells(
+    *,
+    cells: Sequence[Image.Image],
+    titles: Sequence[str],
+    output_path: Path,
+    columns: int = 2,
+) -> Path:
+    if not cells:
+        raise ValueError("cells must not be empty.")
+    cell_width = max(image.width for image in cells)
+    image_height = max(image.height for image in cells)
+    title_height = 38
+    rows = (len(cells) + columns - 1) // columns
+    canvas = Image.new(
+        "RGB",
+        (cell_width * columns, (image_height + title_height) * rows),
+        "white",
+    )
+    draw = ImageDraw.Draw(canvas)
+    font = ImageFont.load_default()
+    for index, (image, title) in enumerate(zip(cells, titles)):
+        row, column = divmod(index, columns)
+        x = column * cell_width
+        y = row * (image_height + title_height)
+        canvas.paste(image, (x, y + title_height))
+        draw.text((x + 4, y + 4), title[:80], fill="black", font=font)
+    path = _validate_output_path(output_path)
+    temporary = path.with_name(f".{path.stem}.tmp.png")
+    try:
+        canvas.save(temporary, format="PNG")
+        temporary.replace(path)
+    finally:
+        if temporary.exists():
+            temporary.unlink()
+    return path
+
+
+def create_detection_prediction_montage(
+    *,
+    dataset: Any,
+    predictions: Sequence[Mapping[str, Tensor]],
+    targets: Sequence[Mapping[str, Tensor]],
+    index_to_class: Mapping[int, str],
+    output_path: Path,
+    score_threshold: float = 0.5,
+    iou_threshold: float = 0.5,
+    max_images: int = 4,
+) -> Path:
+    """TP가 많은 Test Sample을 골라 GT·정답·FP·Miss를 함께 표시한다."""
+    if len(predictions) != len(targets) or len(predictions) != len(dataset):
+        raise ValueError("dataset, predictions, targets lengths must match.")
+    ranked: list[tuple[int, int, int]] = []
+    matchings = []
+    for image_index, (prediction, target) in enumerate(zip(predictions, targets)):
+        matching = match_predictions_to_ground_truth(
+            prediction=prediction,
+            target=target,
+            score_threshold=score_threshold,
+            iou_threshold=iou_threshold,
+        )
+        matchings.append(matching)
+        ranked.append(
+            (
+                len(matching.matches),
+                -len(matching.false_positive_prediction_indexes),
+                image_index,
+            )
+        )
+    selected_indexes = [
+        item[2]
+        for item in sorted(ranked, reverse=True)[:max_images]
+    ]
+    cells: list[Image.Image] = []
+    titles: list[str] = []
+    for image_index in selected_indexes:
+        image, _ = dataset[image_index]
+        cell = _tensor_to_pil(image)
+        draw = ImageDraw.Draw(cell)
+        prediction = predictions[image_index]
+        target = targets[image_index]
+        matching = matchings[image_index]
+        matched_gt = {pair.ground_truth_index for pair in matching.matches}
+        for gt_index, (box, label) in enumerate(
+            zip(target["boxes"].tolist(), target["labels"].tolist())
+        ):
+            category = "ground_truth" if gt_index in matched_gt else "missed_ground_truth"
+            _draw_box(
+                draw,
+                box,
+                color=_BOX_COLORS[category],
+                label=f"GT {index_to_class[int(label)]}",
+            )
+        true_positive = set(matching.true_positive_prediction_indexes)
+        for prediction_index in matching.kept_prediction_indexes:
+            box = prediction["boxes"][prediction_index].tolist()
+            label = int(prediction["labels"][prediction_index].item())
+            score = float(prediction["scores"][prediction_index].item())
+            category = (
+                "correct_prediction"
+                if prediction_index in true_positive
+                else "false_positive"
+            )
+            _draw_box(
+                draw,
+                box,
+                color=_BOX_COLORS[category],
+                label=f"P {index_to_class[label]} {score:.2f}",
+            )
+        sample_id = (
+            dataset.samples[image_index].record_id
+            if hasattr(dataset, "samples")
+            else f"image_{image_index}"
+        )
+        cells.append(cell.resize((400, 400)))
+        titles.append(
+            f"{sample_id} | TP={len(matching.matches)} "
+            f"FP={len(matching.false_positive_prediction_indexes)} "
+            f"FN={len(matching.false_negative_ground_truth_indexes)}"
+        )
+    return _compose_cells(cells=cells, titles=titles, output_path=output_path)
+
+
+def create_detection_failure_montage(
+    *,
+    dataset: Any,
+    predictions: Sequence[Mapping[str, Tensor]],
+    targets: Sequence[Mapping[str, Tensor]],
+    failure_analysis: Mapping[str, Any],
+    index_to_class: Mapping[int, str],
+    output_path: Path,
+    max_images: int = 6,
+) -> Path:
+    """대표 실패 Event를 Category별로 선택해 한 장의 Montage로 저장한다."""
+    representatives = failure_analysis["representative_samples"]
+    selected: list[Mapping[str, Any]] = []
+    for category in (
+        "wrong_class",
+        "low_iou_localization",
+        "duplicate_prediction",
+        "low_confidence_correct_detection",
+        "false_negative",
+        "false_positive",
+    ):
+        values = representatives.get(category, [])
+        if values:
+            selected.append(values[0])
+        if len(selected) >= max_images:
+            break
+    if not selected:
+        raise ValueError("failure_analysis contains no representative failures.")
+
+    cells: list[Image.Image] = []
+    titles: list[str] = []
+    for event in selected:
+        image_index = int(event["image_index"])
+        image, _ = dataset[image_index]
+        cell = _tensor_to_pil(image)
+        draw = ImageDraw.Draw(cell)
+        prediction = predictions[image_index]
+        target = targets[image_index]
+        ground_truth_index = event.get("ground_truth_index")
+        prediction_index = event.get("prediction_index")
+        if ground_truth_index is not None:
+            gt_index = int(ground_truth_index)
+            label = int(target["labels"][gt_index].item())
+            _draw_box(
+                draw,
+                target["boxes"][gt_index].tolist(),
+                color=_BOX_COLORS["missed_ground_truth"],
+                label=f"GT {index_to_class[label]}",
+                width=3,
+            )
+        if prediction_index is not None:
+            pred_index = int(prediction_index)
+            label = int(prediction["labels"][pred_index].item())
+            score = float(prediction["scores"][pred_index].item())
+            _draw_box(
+                draw,
+                prediction["boxes"][pred_index].tolist(),
+                color=_BOX_COLORS["failure_prediction"],
+                label=f"P {index_to_class[label]} {score:.2f}",
+                width=3,
+            )
+        cells.append(cell.resize((400, 400)))
+        titles.append(
+            f"{event['category']} | {event['sample_id']} | "
+            f"IoU={event['iou']} Score={event['score']}"
+        )
+    return _compose_cells(cells=cells, titles=titles, output_path=output_path)

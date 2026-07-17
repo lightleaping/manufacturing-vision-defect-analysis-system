@@ -1,0 +1,299 @@
+{
+  "schema_version": 1,
+  "created_at_utc": "2026-07-17T04:54:10.829894+00:00",
+  "project_root": "C:\\Users\\kflow\\Downloads\\manufacturing-vision-defect-analysis-system",
+  "environment": {
+    "python": "3.11.9",
+    "torch": "2.12.0+cpu",
+    "torchvision": "0.27.0+cpu",
+    "device": "cpu",
+    "torch_num_threads": 2
+  },
+  "execution_policy": {
+    "allow_pretrained_download": true,
+    "pretrained_cache_existed_before": false,
+    "pretrained_cache_exists_after": true,
+    "full_training_executed": false,
+    "test_split_evaluation_executed": false,
+    "proposal_limits_applied": false,
+    "augmentation_probability": 0.0
+  },
+  "storage": {
+    "disk_free_gib_before": 6.96,
+    "disk_free_gib_after": 6.764,
+    "expected_weight_path": "C:\\Users\\kflow\\.cache\\torch\\hub\\checkpoints\\fasterrcnn_mobilenet_v3_large_320_fpn-907ea3f9.pth",
+    "weight_size_mib": 74.239,
+    "checkpoint_path": "models/detection/pilot/day12_detection_pilot.pt",
+    "checkpoint_size_mib": 128.072
+  },
+  "data": {
+    "train_dataset_size": 1440,
+    "validation_dataset_size": 178,
+    "pilot_train_samples": 1,
+    "pilot_validation_samples": 1,
+    "train_record_ids": [
+      "train/crazing_1"
+    ],
+    "validation_record_ids": [
+      "validation/crazing_298"
+    ]
+  },
+  "model": {
+    "architecture": "fasterrcnn_mobilenet_v3_large_320_fpn",
+    "device": "cpu",
+    "training_mode": true,
+    "num_defect_classes": 6,
+    "num_classes_with_background": 7,
+    "class_to_index": {
+      "crazing": 1,
+      "inclusion": 2,
+      "patches": 3,
+      "pitted_surface": 4,
+      "rolled_in_scale": 5,
+      "scratches": 6
+    },
+    "min_size": 320,
+    "max_size": 320,
+    "pretrained_detection_weights": "FasterRCNN_MobileNet_V3_Large_320_FPN_Weights.COCO_V1",
+    "pretrained_backbone_weights": null,
+    "network_download_requested": true,
+    "predictor_output_classes": 7,
+    "proposal_limits": null
+  },
+  "freeze": {
+    "backbone_trainable": false,
+    "changed_parameter_tensors": 56,
+    "total_parameters": 18955854,
+    "trainable_parameters": 14540910,
+    "frozen_parameters": 4414944
+  },
+  "optimization": {
+    "total_parameters": 18955854,
+    "trainable_parameters": 14540910,
+    "frozen_parameters": 4414944,
+    "optimizer_name": "sgd",
+    "learning_rate": 0.005,
+    "momentum": 0.9,
+    "weight_decay": 0.0005,
+    "scheduler_name": "step_lr",
+    "scheduler_step_size": 2,
+    "scheduler_gamma": 0.1,
+    "optimizer_contains_all_parameters": true
+  },
+  "tiny_overfit": {
+    "steps": 3,
+    "step_results": [
+      {
+        "losses": {
+          "loss_classifier": 1.4823414087295532,
+          "loss_box_reg": 0.5616884827613831,
+          "loss_objectness": 0.06292136013507843,
+          "loss_rpn_box_reg": 0.0028949901461601257
+        },
+        "total_loss": 2.1098461151123047,
+        "elapsed_seconds": 0.49375850000069477,
+        "gradient_parameter_count": 14,
+        "learning_rates": [
+          0.005
+        ],
+        "batch_size": 1,
+        "inputs_unchanged": true
+      },
+      {
+        "losses": {
+          "loss_classifier": 0.34986698627471924,
+          "loss_box_reg": 7.048854827880859,
+          "loss_objectness": 0.06235532835125923,
+          "loss_rpn_box_reg": 0.002731690648943186
+        },
+        "total_loss": 7.463809013366699,
+        "elapsed_seconds": 0.27385359999607317,
+        "gradient_parameter_count": 14,
+        "learning_rates": [
+          0.005
+        ],
+        "batch_size": 1,
+        "inputs_unchanged": true
+      },
+      {
+        "losses": {
+          "loss_classifier": 0.20923317968845367,
+          "loss_box_reg": 2.906071662902832,
+          "loss_objectness": 0.061328209936618805,
+          "loss_rpn_box_reg": 0.0024254093877971172
+        },
+        "total_loss": 3.17905855178833,
+        "elapsed_seconds": 0.24683709999953862,
+        "gradient_parameter_count": 14,
+        "learning_rates": [
+          0.005
+        ],
+        "batch_size": 1,
+        "inputs_unchanged": true
+      }
+    ],
+    "initial_total_loss": 2.1098461151123047,
+    "final_total_loss": 3.17905855178833,
+    "minimum_total_loss": 2.1098461151123047,
+    "loss_decrease_observed": false,
+    "all_losses_finite": true,
+    "average_step_seconds": 0.3381497333321022
+  },
+  "validation_inference": [
+    {
+      "elapsed_seconds": 0.14639399999578018,
+      "batch_size": 1,
+      "inputs_unchanged": true,
+      "prediction_box_counts": [
+        30
+      ]
+    }
+  ],
+  "validation_metrics": {
+    "schema_version": 1,
+    "matching_policy": {
+      "score_threshold": 0.5,
+      "iou_threshold": 0.5,
+      "same_class_only": true,
+      "prediction_order": "score_descending",
+      "one_to_one_matching": true,
+      "threshold_comparison": "inclusive",
+      "ap_method": "all_point_interpolated_precision_envelope"
+    },
+    "overall": {
+      "image_count": 1,
+      "tp": 0,
+      "fp": 2,
+      "fn": 2,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "mean_matched_iou": null,
+      "map": 0.0,
+      "map_at_iou": 0.0,
+      "map_50": 0.0,
+      "map_class_count": 1
+    },
+    "class_metrics": {
+      "crazing": {
+        "label": 1,
+        "tp": 0,
+        "fp": 2,
+        "fn": 2,
+        "ground_truth_count": 2,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "mean_matched_iou": null,
+        "ap": 0.0,
+        "ap_at_iou": 0.0,
+        "ap_50": 0.0,
+        "ap_ground_truth_count": 2,
+        "ap_prediction_count": 5
+      },
+      "inclusion": {
+        "label": 2,
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "ground_truth_count": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "mean_matched_iou": null,
+        "ap": null,
+        "ap_at_iou": null,
+        "ap_50": null,
+        "ap_ground_truth_count": 0,
+        "ap_prediction_count": 5
+      },
+      "patches": {
+        "label": 3,
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "ground_truth_count": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "mean_matched_iou": null,
+        "ap": null,
+        "ap_at_iou": null,
+        "ap_50": null,
+        "ap_ground_truth_count": 0,
+        "ap_prediction_count": 5
+      },
+      "pitted_surface": {
+        "label": 4,
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "ground_truth_count": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "mean_matched_iou": null,
+        "ap": null,
+        "ap_at_iou": null,
+        "ap_50": null,
+        "ap_ground_truth_count": 0,
+        "ap_prediction_count": 5
+      },
+      "rolled_in_scale": {
+        "label": 5,
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "ground_truth_count": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "mean_matched_iou": null,
+        "ap": null,
+        "ap_at_iou": null,
+        "ap_50": null,
+        "ap_ground_truth_count": 0,
+        "ap_prediction_count": 5
+      },
+      "scratches": {
+        "label": 6,
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "ground_truth_count": 0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "mean_matched_iou": null,
+        "ap": null,
+        "ap_at_iou": null,
+        "ap_50": null,
+        "ap_ground_truth_count": 0,
+        "ap_prediction_count": 5
+      }
+    },
+    "image_metrics": [
+      {
+        "image_index": 0,
+        "kept_prediction_count": 2,
+        "true_positive_count": 0,
+        "false_positive_count": 2,
+        "false_negative_count": 2,
+        "matched_mean_iou": null
+      }
+    ]
+  },
+  "timing": {
+    "model_build_and_weight_prepare_seconds": 8.724881,
+    "pilot_total_seconds": 15.774181,
+    "estimated_full_epoch_seconds": 512.994,
+    "estimated_full_epoch_minutes": 8.55,
+    "estimate_note": "Single-batch CPU extrapolation; actual full epoch can differ because of data loading, box counts, cache, and later unfreeze."
+  },
+  "artifacts": {
+    "training_config": "reports/artifacts/day12_detection_training_config.json",
+    "pilot_analysis": "reports/artifacts/day12_detection_training_pilot.json",
+    "pilot_checkpoint": "models/detection/pilot/day12_detection_pilot.pt"
+  },
+  "validation_passed": true
+}

@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "stage": "day12_training_pilot",
+  "training_config": {
+    "batch_size": 1,
+    "epochs": 1,
+    "learning_rate": 0.005,
+    "momentum": 0.9,
+    "weight_decay": 0.0005,
+    "optimizer_name": "sgd",
+    "scheduler_name": "step_lr",
+    "scheduler_step_size": 2,
+    "scheduler_gamma": 0.1,
+    "score_threshold": 0.5,
+    "iou_threshold": 0.5,
+    "best_metric_name": "map_50",
+    "freeze_backbone_epochs": 1,
+    "horizontal_flip_probability": 0.0,
+    "duplicate_box_policy": "preserve",
+    "min_size": 320,
+    "max_size": 320,
+    "num_workers": 0,
+    "pin_memory": false,
+    "persistent_workers": false,
+    "drop_last": false,
+    "torch_num_threads": 2,
+    "random_seed": 42
+  },
+  "model_config": {
+    "architecture": "fasterrcnn_mobilenet_v3_large_320_fpn",
+    "num_classes_with_background": 7,
+    "class_to_index": {
+      "BACKGROUND": 0,
+      "crazing": 1,
+      "inclusion": 2,
+      "patches": 3,
+      "pitted_surface": 4,
+      "rolled_in_scale": 5,
+      "scratches": 6
+    },
+    "min_size": 320,
+    "max_size": 320,
+    "use_pretrained_weights": true
+  },
+  "execution_scope": {
+    "train_samples": 1,
+    "validation_samples": 1,
+    "overfit_steps": 3,
+    "full_training_executed": false,
+    "test_split_evaluation_executed": false
+  }
+}

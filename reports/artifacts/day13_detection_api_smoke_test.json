@@ -1,0 +1,32 @@
+{
+  "stage": "day13_detection_api_smoke_test",
+  "request": {
+    "endpoint": "/api/v1/detection/predictions",
+    "image_path": "C:\\Users\\kflow\\Downloads\\manufacturing-vision-defect-analysis-system\\data\\raw\\neu_det\\NEU-DET\\train\\images\\crazing\\crazing_1.jpg",
+    "score_threshold": 0.5
+  },
+  "response": {
+    "status_code": 200,
+    "payload": {
+      "detections": [],
+      "detection_count": 0,
+      "score_threshold": 0.5,
+      "iou_threshold": 0.5,
+      "model_name": "FasterRCNNMobileNetV3Large320FPN",
+      "model_version": "day12_detection_best",
+      "architecture": "fasterrcnn_mobilenet_v3_large_320_fpn",
+      "device": "cpu",
+      "checkpoint_epoch": 3,
+      "checkpoint_metric_name": "map_50",
+      "checkpoint_metric_value": 0.6774182169290722,
+      "original_filename": "crazing_1.jpg",
+      "content_type": "image/jpeg",
+      "image_width": 200,
+      "image_height": 200,
+      "image_mode": "RGB",
+      "model_input_mode": "RGB",
+      "inference_time_ms": 321.3547000050312
+    }
+  },
+  "validation_passed": true
+}

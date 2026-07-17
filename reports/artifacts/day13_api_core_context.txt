@@ -1,0 +1,2229 @@
+﻿====================================================================================================
+FILE: .\src\api\app.py
+====================================================================================================
+"""FastAPI Application Factory, Lifespan, Health쨌Prediction Endpoint."""
+
+from __future__ import annotations
+
+from collections.abc import Callable
+from contextlib import asynccontextmanager
+from typing import Any
+
+from fastapi import FastAPI, File, HTTPException, Request, UploadFile
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+
+from src.api.config import ApiSettings, DEFAULT_API_SETTINGS
+from src.api.image_validation import ImageValidationError, validate_uploaded_image
+from src.api.inference_service import InferenceServiceError
+from src.api.schemas import ErrorResponse, HealthResponse, PredictionResponse
+
+
+ServiceFactory = Callable[[], Any]
+_DEFAULT_FACTORY = object()
+
+
+def _create_default_service() -> Any:
+    """?쒗솚 Import? 遺덊븘?뷀븳 Module 珥덇린?붾? ?쇳븯湲??꾪븳 吏??Import."""
+
+    from src.api.model_loader import create_production_inference_service
+
+    return create_production_inference_service()
+
+
+def _error_content(*, code: str, message: str) -> dict[str, dict[str, str]]:
+    return {
+        "detail": {
+            "code": code,
+            "message": message,
+        }
+    }
+
+
+def create_app(
+    *,
+    service_factory: ServiceFactory | None | object = _DEFAULT_FACTORY,
+    settings: ApiSettings = DEFAULT_API_SETTINGS,
+) -> FastAPI:
+    """Production怨?Test媛 媛숈? API 援ъ“瑜??ъ슜?섎룄濡?App???앹꽦?쒕떎.
+
+    service_factory ?앸왂:
+        ?ㅼ젣 ResNet18 Production Service瑜?Lifespan?먯꽌 ??踰?濡쒕뵫?쒕떎.
+
+    service_factory=None:
+        Model Not Ready ?곹깭瑜??섎룄?곸쑝濡?留뚮뱺??
+
+    Dummy Factory ?꾨떖:
+        ?ㅼ젣 Checkpoint ?놁씠 API ?듯빀 ?뚯뒪?몃? ?섑뻾?쒕떎.
+    """
+
+    if service_factory is _DEFAULT_FACTORY:
+        resolved_service_factory: ServiceFactory | None = _create_default_service
+    elif service_factory is None or callable(service_factory):
+        resolved_service_factory = service_factory
+    else:
+        raise TypeError("service_factory must be callable, None, or omitted")
+
+    @asynccontextmanager
+    async def lifespan(current_app: FastAPI):
+        current_app.state.inference_service = None
+        current_app.state.model_startup_failed = False
+
+        if resolved_service_factory is not None:
+            try:
+                # Process ?쒖옉 ????踰덈쭔 Model쨌Checkpoint쨌Transform??濡쒕뵫?쒕떎.
+                current_app.state.inference_service = resolved_service_factory()
+            except Exception:
+                # ?대? 寃쎈줈, Checkpoint ?뺣낫, Stack Trace??HTTP ?묐떟???몄텧?섏? ?딅뒗??
+                current_app.state.inference_service = None
+                current_app.state.model_startup_failed = True
+
+        yield
+
+        current_app.state.inference_service = None
+
+    application = FastAPI(
+        title=settings.service_name,
+        version=settings.api_version,
+        description=(
+            "ResNet18 Best Checkpoint瑜??ъ슜?섏뿬 ?쒖“ ?대?吏瑜?"
+            "NORMAL ?먮뒗 DEFECT濡?遺꾨쪟?섎뒗 API"
+        ),
+        lifespan=lifespan,
+        docs_url="/docs",
+        redoc_url="/redoc",
+    )
+
+    @application.exception_handler(RequestValidationError)
+    async def request_validation_error_handler(
+        request: Request,
+        exc: RequestValidationError,
+    ) -> JSONResponse:
+        del request, exc
+        return JSONResponse(
+            status_code=400,
+            content=_error_content(
+                code="MISSING_FILE",
+                message="multipart/form-data??file ?꾨뱶媛 ?꾩슂?⑸땲??",
+            ),
+        )
+
+    @application.get(
+        "/api/v1/health",
+        response_model=HealthResponse,
+        tags=["Health"],
+    )
+    async def health(request: Request) -> HealthResponse:
+        service = getattr(request.app.state, "inference_service", None)
+        model_loaded = bool(
+            service is not None
+            and getattr(service, "is_ready", False)
+        )
+
+        return HealthResponse(
+            status="ok",
+            service=settings.service_name,
+            model_loaded=model_loaded,
+            model_name=getattr(service, "model_name", settings.model_name),
+            device=getattr(service, "device_name", settings.device),
+        )
+
+    @application.post(
+        "/api/v1/predictions",
+        response_model=PredictionResponse,
+        responses={
+            400: {"model": ErrorResponse},
+            413: {"model": ErrorResponse},
+            415: {"model": ErrorResponse},
+            500: {"model": ErrorResponse},
+            503: {"model": ErrorResponse},
+        },
+        tags=["Predictions"],
+    )
+    async def create_prediction(
+        request: Request,
+        file: UploadFile = File(...),
+    ) -> PredictionResponse:
+        service = getattr(request.app.state, "inference_service", None)
+
+        if service is None or not getattr(service, "is_ready", False):
+            raise HTTPException(
+                status_code=503,
+                detail={
+                    "code": "MODEL_NOT_READY",
+                    "message": "異붾줎 紐⑤뜽??以鍮꾨릺吏 ?딆븯?듬땲??",
+                },
+            )
+
+        try:
+            validated_image = await validate_uploaded_image(
+                file,
+                settings=settings,
+            )
+            return service.predict(validated_image)
+
+        except ImageValidationError as exc:
+            raise HTTPException(
+                status_code=exc.status_code,
+                detail={"code": exc.code, "message": exc.message},
+            ) from exc
+
+        except InferenceServiceError as exc:
+            raise HTTPException(
+                status_code=exc.status_code,
+                detail={"code": exc.code, "message": exc.message},
+            ) from exc
+
+        except Exception as exc:
+            raise HTTPException(
+                status_code=500,
+                detail={
+                    "code": "INFERENCE_FAILED",
+                    "message": "?대?吏 異붾줎 以??대? ?ㅻ쪟媛 諛쒖깮?덉뒿?덈떎.",
+                },
+            ) from exc
+
+        finally:
+            await file.close()
+
+    return application
+
+
+# Uvicorn?먯꽌 import???ㅼ젣 Production App.
+# Model? ??以꾩뿉??濡쒕뵫?섏? ?딄퀬 Lifespan ?쒖옉 ????踰덈쭔 濡쒕뵫?쒕떎.
+app = create_app()
+
+
+====================================================================================================
+FILE: .\src\api\config.py
+====================================================================================================
+"""Day 7 FastAPI ?대?吏 異붾줎 API??怨좎젙 ?ㅼ젙."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from pathlib import Path
+
+
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+DEFAULT_CHECKPOINT_PATH = (
+    PROJECT_ROOT
+    / "models"
+    / "checkpoints"
+    / "resnet18_transfer_best.pt"
+)
+
+
+@dataclass(frozen=True, slots=True)
+class ApiSettings:
+    """API, ?낅줈??寃利? 紐⑤뜽 異붾줎?먯꽌 ?④퍡 ?ъ슜?섎뒗 ?ㅼ젙."""
+
+    service_name: str = "Manufacturing Vision Defect Analysis System"
+    api_version: str = "v1"
+
+    model_name: str = "ResNet18Transfer"
+    model_version: str = "resnet18_transfer_best"
+    positive_class: str = "DEFECT"
+    device: str = "cpu"
+    classification_threshold: float = 0.5
+    checkpoint_path: Path = DEFAULT_CHECKPOINT_PATH
+
+    # Dataset ?먮낯? 300횞300?대?濡??뺤긽 ?낅줈?쒖뿉??異⑸텇???ъ쑀媛 ?덈떎.
+    max_upload_bytes: int = 10 * 1024 * 1024
+
+    # ?뺤텞 ?댁젣 ??吏?섏튂寃????대?吏媛 硫붾え由щ? ?먯쑀?섎뒗 寃껋쓣 諛⑹??쒕떎.
+    max_image_pixels: int = 25_000_000
+
+    allowed_extensions: tuple[str, ...] = (".jpg", ".jpeg", ".png")
+    allowed_content_types: tuple[str, ...] = ("image/jpeg", "image/png")
+    allowed_decoded_formats: tuple[str, ...] = ("JPEG", "PNG")
+
+
+DEFAULT_API_SETTINGS = ApiSettings()
+
+
+====================================================================================================
+FILE: .\src\api\schemas.py
+====================================================================================================
+"""FastAPI ?뺤긽 ?묐떟怨??ㅻ쪟 ?묐떟 Schema."""
+
+from __future__ import annotations
+
+from pydantic import BaseModel, Field
+
+
+class HealthResponse(BaseModel):
+    """API Process? Model 以鍮??곹깭."""
+
+    status: str
+    service: str
+    model_loaded: bool
+    model_name: str
+    device: str
+
+
+class PredictionResponse(BaseModel):
+    """?뺤긽쨌遺덈웾 ?댁쭊 遺꾨쪟 寃곌낵."""
+
+    prediction: int = Field(ge=0, le=1)
+    prediction_class_name: str
+
+    defect_probability: float = Field(ge=0.0, le=1.0)
+    normal_probability: float = Field(ge=0.0, le=1.0)
+    raw_logit: float
+    classification_threshold: float = Field(ge=0.0, le=1.0)
+
+    model_name: str
+    model_version: str
+    positive_class: str
+
+    original_filename: str
+    content_type: str
+    image_width: int = Field(gt=0)
+    image_height: int = Field(gt=0)
+    image_mode: str
+    inference_time_ms: float = Field(ge=0.0)
+
+
+class ErrorDetail(BaseModel):
+    """?몃???怨듦컻?대룄 ?덉쟾???ㅻ쪟 ?뺣낫."""
+
+    code: str
+    message: str
+
+
+class ErrorResponse(BaseModel):
+    """?꾨줈?앺듃 怨듯넻 ?ㅻ쪟 ?묐떟."""
+
+    detail: ErrorDetail
+
+
+====================================================================================================
+FILE: .\src\api\image_validation.py
+====================================================================================================
+"""?낅줈???대?吏 ?쒗븳 ?쎄린, ?ㅼ젣 Decode 寃利? RGB 蹂??"""
+
+from __future__ import annotations
+
+import warnings
+from dataclasses import dataclass
+from io import BytesIO
+from pathlib import Path
+
+from fastapi import UploadFile
+from PIL import Image, UnidentifiedImageError
+
+from src.api.config import ApiSettings, DEFAULT_API_SETTINGS
+
+
+_EXTENSION_TO_CONTENT_TYPE = {
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".png": "image/png",
+}
+
+_EXTENSION_TO_DECODED_FORMAT = {
+    ".jpg": "JPEG",
+    ".jpeg": "JPEG",
+    ".png": "PNG",
+}
+
+_CONTENT_TYPE_TO_DECODED_FORMAT = {
+    "image/jpeg": "JPEG",
+    "image/png": "PNG",
+}
+
+
+class ImageValidationError(ValueError):
+    """?대씪?댁뼵?멸? 蹂대궦 ?대?吏媛 ?꾨줈?앺듃 ?뺤콉??留뚯”?섏? 紐삵븳 寃쎌슦."""
+
+    def __init__(self, *, code: str, message: str, status_code: int) -> None:
+        super().__init__(message)
+        self.code = code
+        self.message = message
+        self.status_code = status_code
+
+
+@dataclass(slots=True)
+class ValidatedImage:
+    """寃利앷낵 RGB 蹂?섏쓣 留덉튇 ?대?吏 諛??먮낯 Metadata."""
+
+    original_filename: str
+    content_type: str
+    original_width: int
+    original_height: int
+    original_mode: str
+    decoded_format: str
+    rgb_image: Image.Image
+
+
+def _normalize_content_type(content_type: str | None) -> str:
+    if not content_type:
+        return ""
+
+    # 遺媛 Parameter媛 ?덈뜑?쇰룄 湲곕낯 MIME Type留?鍮꾧탳?쒕떎.
+    return content_type.split(";", maxsplit=1)[0].strip().lower()
+
+
+def _extract_suffix(filename: str | None) -> str:
+    if not filename:
+        return ""
+    return Path(filename).suffix.lower()
+
+
+def validate_upload_metadata(
+    *,
+    filename: str | None,
+    content_type: str | None,
+    settings: ApiSettings = DEFAULT_API_SETTINGS,
+) -> tuple[str, str]:
+    """?뚯씪紐??뺤옣?먯? Content-Type??援먯감 寃利앺븳??"""
+
+    suffix = _extract_suffix(filename)
+    normalized_content_type = _normalize_content_type(content_type)
+
+    if suffix not in settings.allowed_extensions:
+        raise ImageValidationError(
+            code="UNSUPPORTED_FILE_TYPE",
+            message="JPEG, JPG, PNG ?뺤떇???대?吏留??낅줈?쒗븷 ???덉뒿?덈떎.",
+            status_code=415,
+        )
+
+    if normalized_content_type not in settings.allowed_content_types:
+        raise ImageValidationError(
+            code="UNSUPPORTED_FILE_TYPE",
+            message="吏?먰븯吏 ?딅뒗 ?대?吏 Content-Type?낅땲??",
+            status_code=415,
+        )
+
+    expected_content_type = _EXTENSION_TO_CONTENT_TYPE[suffix]
+    if normalized_content_type != expected_content_type:
+        raise ImageValidationError(
+            code="UNSUPPORTED_FILE_TYPE",
+            message="?뚯씪 ?뺤옣?먯? Content-Type???쇱튂?섏? ?딆뒿?덈떎.",
+            status_code=415,
+        )
+
+    return suffix, normalized_content_type
+
+
+async def read_upload_file_limited(
+    upload_file: UploadFile,
+    *,
+    max_upload_bytes: int,
+    chunk_size: int = 1024 * 1024,
+) -> bytes:
+    """?덉슜 ?ш린蹂대떎 1 byte源뚯?留??쎌뼱 怨쇰? ?낅줈?쒕? 李⑤떒?쒕떎."""
+
+    chunks: list[bytes] = []
+    total_size = 0
+
+    while True:
+        remaining_to_limit = max_upload_bytes + 1 - total_size
+        if remaining_to_limit <= 0:
+            break
+
+        current_chunk_size = min(chunk_size, remaining_to_limit)
+        chunk = await upload_file.read(current_chunk_size)
+
+        if not chunk:
+            break
+
+        chunks.append(chunk)
+        total_size += len(chunk)
+
+        if total_size > max_upload_bytes:
+            raise ImageValidationError(
+                code="FILE_TOO_LARGE",
+                message="?낅줈???뚯씪??理쒕? ?덉슜 ?ш린瑜?珥덇낵?덉뒿?덈떎.",
+                status_code=413,
+            )
+
+    data = b"".join(chunks)
+
+    if not data:
+        raise ImageValidationError(
+            code="EMPTY_FILE",
+            message="?낅줈?쒗븳 ?뚯씪??鍮꾩뼱 ?덉뒿?덈떎.",
+            status_code=400,
+        )
+
+    return data
+
+
+def decode_and_validate_image(
+    *,
+    data: bytes,
+    filename: str,
+    content_type: str,
+    settings: ApiSettings = DEFAULT_API_SETTINGS,
+) -> ValidatedImage:
+    """?ㅼ젣 ?대?吏 ?뺤떇, 臾닿껐?? Pixel ?섎? ?뺤씤?섍퀬 RGB濡?蹂?섑븳??"""
+
+    if not data:
+        raise ImageValidationError(
+            code="EMPTY_FILE",
+            message="?낅줈?쒗븳 ?뚯씪??鍮꾩뼱 ?덉뒿?덈떎.",
+            status_code=400,
+        )
+
+    suffix, normalized_content_type = validate_upload_metadata(
+        filename=filename,
+        content_type=content_type,
+        settings=settings,
+    )
+
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", Image.DecompressionBombWarning)
+
+            # verify()濡?Container 援ъ“? ?먯긽 ?щ?瑜?癒쇱? 寃?ы븳??
+            with Image.open(BytesIO(data)) as verification_image:
+                verification_image.verify()
+
+            # verify() ?댄썑 ?ㅼ젣 Pixel???쎄린 ?꾪빐 ??Image 媛앹껜瑜??곕떎.
+            with Image.open(BytesIO(data)) as decoded_image:
+                decoded_format = (decoded_image.format or "").upper()
+
+                if decoded_format not in settings.allowed_decoded_formats:
+                    raise ImageValidationError(
+                        code="UNSUPPORTED_FILE_TYPE",
+                        message="?ㅼ젣 Decode 寃곌낵媛 吏???대?吏 ?뺤떇???꾨떃?덈떎.",
+                        status_code=415,
+                    )
+
+                expected_from_suffix = _EXTENSION_TO_DECODED_FORMAT[suffix]
+                expected_from_content_type = _CONTENT_TYPE_TO_DECODED_FORMAT[
+                    normalized_content_type
+                ]
+
+                if (
+                    decoded_format != expected_from_suffix
+                    or decoded_format != expected_from_content_type
+                ):
+                    raise ImageValidationError(
+                        code="UNSUPPORTED_FILE_TYPE",
+                        message="?뚯씪 Metadata? ?ㅼ젣 ?대?吏 ?뺤떇???쇱튂?섏? ?딆뒿?덈떎.",
+                        status_code=415,
+                    )
+
+                width, height = decoded_image.size
+                if width <= 0 or height <= 0:
+                    raise ImageValidationError(
+                        code="INVALID_IMAGE",
+                        message="?대?吏 ?ш린 ?뺣낫媛 ?щ컮瑜댁? ?딆뒿?덈떎.",
+                        status_code=400,
+                    )
+
+                if width * height > settings.max_image_pixels:
+                    raise ImageValidationError(
+                        code="IMAGE_TOO_LARGE",
+                        message="?대?吏 Pixel ?섍? 理쒕? ?덉슜 踰붿쐞瑜?珥덇낵?덉뒿?덈떎.",
+                        status_code=413,
+                    )
+
+                original_mode = decoded_image.mode
+                decoded_image.load()
+
+                # ?먮낯 媛앹껜? ?섎챸 諛?硫붾え由щ? 遺꾨━??RGB 蹂듭궗蹂몄쓣 留뚮뱺??
+                rgb_image = decoded_image.convert("RGB").copy()
+
+    except ImageValidationError:
+        raise
+    except (
+        UnidentifiedImageError,
+        OSError,
+        ValueError,
+        Image.DecompressionBombError,
+        Image.DecompressionBombWarning,
+    ) as exc:
+        raise ImageValidationError(
+            code="INVALID_IMAGE",
+            message="?낅줈?쒗븳 ?뚯씪???뺤긽?곸씤 ?대?吏濡??쎌쓣 ???놁뒿?덈떎.",
+            status_code=400,
+        ) from exc
+
+    return ValidatedImage(
+        original_filename=filename,
+        content_type=normalized_content_type,
+        original_width=width,
+        original_height=height,
+        original_mode=original_mode,
+        decoded_format=decoded_format,
+        rgb_image=rgb_image,
+    )
+
+
+async def validate_uploaded_image(
+    upload_file: UploadFile,
+    *,
+    settings: ApiSettings = DEFAULT_API_SETTINGS,
+) -> ValidatedImage:
+    """FastAPI UploadFile???쒗븳 ?쎄린?섍퀬 寃利앸맂 RGB ?대?吏濡?留뚮뱺??"""
+
+    filename = upload_file.filename or ""
+    content_type = upload_file.content_type or ""
+
+    # ?덉슜?섏? ?딅뒗 Metadata???뚯씪 蹂몃Ц???쎄린 ?꾩뿉 嫄곗젅?쒕떎.
+    validate_upload_metadata(
+        filename=filename,
+        content_type=content_type,
+        settings=settings,
+    )
+
+    data = await read_upload_file_limited(
+        upload_file,
+        max_upload_bytes=settings.max_upload_bytes,
+    )
+
+    return decode_and_validate_image(
+        data=data,
+        filename=filename,
+        content_type=content_type,
+        settings=settings,
+    )
+
+
+====================================================================================================
+FILE: .\src\api\model_loader.py
+====================================================================================================
+"""?ㅼ젣 ResNet18 Best Checkpoint瑜?API 異붾줎 Service濡??곌껐?쒕떎.
+
+[洹몃?濡??ъ궗??
+- scripts.run_day4_resnet18_training.restore_best_checkpoint
+- src.data.image_transforms.create_test_transform
+"""
+
+from __future__ import annotations
+
+import torch
+
+from scripts.run_day4_resnet18_training import restore_best_checkpoint
+from src.api.config import ApiSettings, DEFAULT_API_SETTINGS
+from src.api.inference_service import ImageInferenceService
+from src.data.image_transforms import create_test_transform
+
+
+def create_production_inference_service(
+    *,
+    settings: ApiSettings = DEFAULT_API_SETTINGS,
+) -> ImageInferenceService:
+    """Checkpoint? Test Transform????踰?濡쒕뵫??Production Service瑜?留뚮뱺??"""
+
+    checkpoint_path = settings.checkpoint_path.resolve()
+    if not checkpoint_path.is_file():
+        raise FileNotFoundError(
+            "ResNet18 Best Checkpoint does not exist."
+        )
+
+    device = torch.device(settings.device)
+
+    # 湲곗〈 Day 4 蹂듭썝 ?⑥닔??weights=None Model??留뚮뱾怨??꾩껜 state_dict瑜?    # 蹂듭썝?섎?濡?ImageNet Weight瑜??ㅼ떆 ?ㅼ슫濡쒕뱶?섏? ?딅뒗??
+    model = restore_best_checkpoint(
+        checkpoint_path=checkpoint_path,
+        device=device,
+    )
+
+    # Day 2?먯꽌 寃利앺븳 Resize ??ToTensor ??ImageNet Normalize瑜??ъ궗?⑺븳??
+    transform = create_test_transform()
+
+    return ImageInferenceService(
+        model=model,
+        transform=transform,
+        device=device,
+        settings=settings,
+    )
+
+
+====================================================================================================
+FILE: .\src\api\inference_service.py
+====================================================================================================
+"""寃利앸맂 RGB ?대?吏??Test Transform怨??댁쭊 遺꾨쪟 紐⑤뜽???곸슜?쒕떎."""
+
+from __future__ import annotations
+
+import math
+from collections.abc import Callable
+from time import perf_counter
+
+import torch
+from PIL import Image
+from torch import Tensor, nn
+
+from src.api.config import ApiSettings, DEFAULT_API_SETTINGS
+from src.api.image_validation import ValidatedImage
+from src.api.schemas import PredictionResponse
+
+
+class InferenceServiceError(RuntimeError):
+    """紐⑤뜽 ?낅젰 以鍮? 異붾줎, 異쒕젰 寃利??ㅽ뙣."""
+
+    def __init__(
+        self,
+        *,
+        code: str,
+        message: str,
+        status_code: int = 500,
+    ) -> None:
+        super().__init__(message)
+        self.code = code
+        self.message = message
+        self.status_code = status_code
+
+
+class ImageInferenceService:
+    """?⑥씪 ?쒖“ ?대?吏??NORMAL쨌DEFECT 異붾줎 Service."""
+
+    def __init__(
+        self,
+        *,
+        model: nn.Module,
+        transform: Callable[[Image.Image], Tensor],
+        device: str | torch.device = "cpu",
+        settings: ApiSettings = DEFAULT_API_SETTINGS,
+    ) -> None:
+        threshold = float(settings.classification_threshold)
+        if not math.isfinite(threshold) or not 0.0 <= threshold <= 1.0:
+            raise ValueError(
+                "classification_threshold must be finite and between 0 and 1"
+            )
+
+        if not callable(transform):
+            raise TypeError("transform must be callable")
+
+        self.settings = settings
+        self.device = torch.device(device)
+        self.model = model.to(self.device)
+        self.transform = transform
+
+        # Service ?앹꽦 ????踰덈쭔 Evaluation Mode濡??꾪솚?쒕떎.
+        self.model.eval()
+        self.is_ready = True
+
+    @property
+    def model_name(self) -> str:
+        return self.settings.model_name
+
+    @property
+    def model_version(self) -> str:
+        return self.settings.model_version
+
+    @property
+    def device_name(self) -> str:
+        return str(self.device)
+
+    def _prepare_batch(self, image: Image.Image) -> Tensor:
+        transformed = self.transform(image)
+
+        if not isinstance(transformed, Tensor):
+            raise InferenceServiceError(
+                code="INVALID_MODEL_INPUT",
+                message="?대?吏 Transform 寃곌낵媛 Tensor媛 ?꾨떃?덈떎.",
+            )
+
+        # Day 2 create_test_transform() 寃곌낵??[C, H, W]??
+        if transformed.ndim != 3:
+            raise InferenceServiceError(
+                code="INVALID_MODEL_INPUT",
+                message="?대?吏 Transform 異쒕젰 Shape媛 ?щ컮瑜댁? ?딆뒿?덈떎.",
+            )
+
+        if not torch.isfinite(transformed).all().item():
+            raise InferenceServiceError(
+                code="INVALID_MODEL_INPUT",
+                message="?대?吏 Transform 寃곌낵??NaN ?먮뒗 Infinity媛 ?덉뒿?덈떎.",
+            )
+
+        batch = transformed.unsqueeze(0)
+        if batch.ndim != 4 or batch.shape[0] != 1:
+            raise InferenceServiceError(
+                code="INVALID_MODEL_INPUT",
+                message="紐⑤뜽 ?낅젰 Batch Shape媛 ?щ컮瑜댁? ?딆뒿?덈떎.",
+            )
+
+        return batch.to(self.device)
+
+    @staticmethod
+    def _validate_model_output(output: object) -> Tensor:
+        if not isinstance(output, Tensor):
+            raise InferenceServiceError(
+                code="INVALID_MODEL_OUTPUT",
+                message="紐⑤뜽 異쒕젰??Tensor媛 ?꾨떃?덈떎.",
+            )
+
+        # ResNet18Transfer??Batch Size 1 異쒕젰 [1]??湲곕낯?쇰줈 ?ъ슜?쒕떎.
+        # ?쇰컲?곸씤 Binary Head??[1, 1]??媛숈? ?섎??대?濡??덉슜?쒕떎.
+        if tuple(output.shape) not in {(1,), (1, 1)}:
+            raise InferenceServiceError(
+                code="INVALID_MODEL_OUTPUT",
+                message="紐⑤뜽 異쒕젰 Shape媛 ?щ컮瑜댁? ?딆뒿?덈떎.",
+            )
+
+        return output.reshape(-1)
+
+    def predict(self, image: ValidatedImage) -> PredictionResponse:
+        """Raw Logit ??Sigmoid ??Threshold ?쒖꽌濡?異붾줎?쒕떎."""
+
+        started_at = perf_counter()
+        batch = self._prepare_batch(image.rgb_image)
+
+        try:
+            # Prediction API?먯꽌??Gradient? Backward媛 ?꾩슂?섏? ?딅떎.
+            with torch.inference_mode():
+                raw_output = self.model(batch)
+        except Exception as exc:
+            raise InferenceServiceError(
+                code="INFERENCE_FAILED",
+                message="紐⑤뜽 異붾줎 以??ㅻ쪟媛 諛쒖깮?덉뒿?덈떎.",
+            ) from exc
+
+        output = self._validate_model_output(raw_output)
+
+        raw_logit = float(output[0].item())
+        if not math.isfinite(raw_logit):
+            raise InferenceServiceError(
+                code="INVALID_MODEL_OUTPUT",
+                message="紐⑤뜽 Raw Logit???좏븳??媛믪씠 ?꾨떃?덈떎.",
+            )
+
+        defect_probability = float(torch.sigmoid(output[0]).item())
+        if not math.isfinite(defect_probability):
+            raise InferenceServiceError(
+                code="INVALID_MODEL_OUTPUT",
+                message="紐⑤뜽 ?뺣쪧 異쒕젰???좏븳??媛믪씠 ?꾨떃?덈떎.",
+            )
+
+        if not 0.0 <= defect_probability <= 1.0:
+            raise InferenceServiceError(
+                code="INVALID_MODEL_OUTPUT",
+                message="紐⑤뜽 ?뺣쪧 異쒕젰 踰붿쐞媛 ?щ컮瑜댁? ?딆뒿?덈떎.",
+            )
+
+        threshold = float(self.settings.classification_threshold)
+        prediction = 1 if defect_probability >= threshold else 0
+        prediction_class_name = "DEFECT" if prediction == 1 else "NORMAL"
+        normal_probability = 1.0 - defect_probability
+        inference_time_ms = (perf_counter() - started_at) * 1000.0
+
+        return PredictionResponse(
+            prediction=prediction,
+            prediction_class_name=prediction_class_name,
+            defect_probability=defect_probability,
+            normal_probability=normal_probability,
+            raw_logit=raw_logit,
+            classification_threshold=threshold,
+            model_name=self.settings.model_name,
+            model_version=self.settings.model_version,
+            positive_class=self.settings.positive_class,
+            original_filename=image.original_filename,
+            content_type=image.content_type,
+            image_width=image.original_width,
+            image_height=image.original_height,
+            image_mode=image.original_mode,
+            inference_time_ms=inference_time_ms,
+        )
+
+
+====================================================================================================
+FILE: .\src\detection\checkpoint.py
+====================================================================================================
+"""Day 12 Detection Checkpoint ??Β룸났??
+
+[湲곗〈 肄붾뱶 李멸퀬]
+Classification ?숈뒿 肄붾뱶???먯옄??????먯튃??Detection?먮룄 ?곸슜?쒕떎.
+
+[?좉퇋 援ы쁽]
+- ``latest``? ``best`` ???뚯씪留??좎??섎뒗 ???援ъ“
+- Model쨌Optimizer쨌Scheduler쨌Config쨌Class Mapping쨌History ?듯빀 ???- CPU ``map_location`` 蹂듭썝
+- ?꾩닔 Key? Class Mapping ?쇱튂 寃利?- ?꾩떆 ?뚯씪 ?????``Path.replace``瑜??ъ슜?섎뒗 ?먯옄??援먯껜
+"""
+
+from __future__ import annotations
+
+from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any
+
+import torch
+from torch import nn
+from torch.optim import Optimizer
+from torch.optim.lr_scheduler import LRScheduler
+import torchvision
+
+
+REQUIRED_CHECKPOINT_KEYS = frozenset(
+    {
+        "epoch",
+        "model_state_dict",
+        "optimizer_state_dict",
+        "scheduler_state_dict",
+        "training_config",
+        "class_mapping",
+        "best_metric",
+        "history",
+        "torch_version",
+        "torchvision_version",
+    }
+)
+
+
+@dataclass(frozen=True, slots=True)
+class DetectionCheckpointState:
+    """Checkpoint 蹂듭썝 ??Trainer媛 ?댁뼱???ъ슜??Metadata."""
+
+    epoch: int
+    next_epoch: int
+    best_metric: float
+    training_config: dict[str, Any]
+    class_mapping: dict[str, int]
+    history: list[dict[str, Any]]
+
+
+def _validate_checkpoint_path(path: Path) -> Path:
+    if not isinstance(path, Path):
+        raise TypeError("path must be pathlib.Path.")
+    if path.suffix.lower() not in {".pt", ".pth"}:
+        raise ValueError("Checkpoint path must use .pt or .pth extension.")
+    return path
+
+
+def _plain_mapping(value: Mapping[str, Any], *, name: str) -> dict[str, Any]:
+    if not isinstance(value, Mapping):
+        raise TypeError(f"{name} must be a mapping.")
+    return dict(value)
+
+
+def _validate_class_mapping(
+    class_mapping: Mapping[str, int],
+) -> dict[str, int]:
+    mapping = dict(class_mapping)
+    if not mapping:
+        raise ValueError("class_mapping must not be empty.")
+    if any(not isinstance(name, str) or not name for name in mapping):
+        raise ValueError("Every class_mapping key must be a non-empty str.")
+    if any(
+        not isinstance(index, int) or isinstance(index, bool) or index < 0
+        for index in mapping.values()
+    ):
+        raise ValueError("Every class_mapping value must be a non-negative int.")
+    if len(set(mapping.values())) != len(mapping):
+        raise ValueError("class_mapping indexes must be unique.")
+    if mapping.get("BACKGROUND") != 0:
+        raise ValueError("class_mapping must reserve BACKGROUND=0.")
+    return mapping
+
+
+def build_detection_checkpoint_payload(
+    *,
+    epoch: int,
+    model: nn.Module,
+    optimizer: Optimizer,
+    scheduler: LRScheduler | None,
+    training_config: Mapping[str, Any],
+    class_mapping: Mapping[str, int],
+    best_metric: float,
+    history: Sequence[Mapping[str, Any]],
+) -> dict[str, Any]:
+    """?숈뒿 ?곹깭瑜??ш컻 媛?ν븳 ?⑥씪 Payload濡?援ъ꽦?쒕떎."""
+    if not isinstance(epoch, int) or isinstance(epoch, bool) or epoch < 0:
+        raise ValueError("epoch must be a non-negative int.")
+    if not isinstance(model, nn.Module):
+        raise TypeError("model must be torch.nn.Module.")
+    if not isinstance(optimizer, Optimizer):
+        raise TypeError("optimizer must be torch.optim.Optimizer.")
+    if scheduler is not None and not isinstance(scheduler, LRScheduler):
+        raise TypeError("scheduler must be LRScheduler or None.")
+
+    config = _plain_mapping(training_config, name="training_config")
+    mapping = _validate_class_mapping(class_mapping)
+
+    if (
+        not isinstance(best_metric, (int, float))
+        or isinstance(best_metric, bool)
+        or not torch.isfinite(torch.tensor(float(best_metric)))
+    ):
+        raise ValueError("best_metric must be a finite number.")
+
+    if isinstance(history, (str, bytes)) or not isinstance(history, Sequence):
+        raise TypeError("history must be a sequence of mappings.")
+    normalized_history: list[dict[str, Any]] = []
+    for index, item in enumerate(history):
+        if not isinstance(item, Mapping):
+            raise TypeError(f"history[{index}] must be a mapping.")
+        normalized_history.append(dict(item))
+
+    return {
+        "epoch": epoch,
+        "model_state_dict": model.state_dict(),
+        "optimizer_state_dict": optimizer.state_dict(),
+        "scheduler_state_dict": (
+            None if scheduler is None else scheduler.state_dict()
+        ),
+        "training_config": config,
+        "class_mapping": mapping,
+        "best_metric": float(best_metric),
+        "history": normalized_history,
+        "torch_version": str(torch.__version__),
+        "torchvision_version": str(torchvision.__version__),
+    }
+
+
+def save_detection_checkpoint(
+    *,
+    payload: Mapping[str, Any],
+    latest_path: Path,
+    best_path: Path | None = None,
+    is_best: bool = False,
+) -> tuple[Path, Path | None]:
+    """Checkpoint瑜??꾩떆 ?뚯씪??????latest쨌best 寃쎈줈濡?援먯껜?쒕떎."""
+    latest = _validate_checkpoint_path(latest_path)
+    best = None if best_path is None else _validate_checkpoint_path(best_path)
+    if not isinstance(is_best, bool):
+        raise TypeError("is_best must be bool.")
+    if is_best and best is None:
+        raise ValueError("best_path is required when is_best=True.")
+    if best is not None and latest.resolve() == best.resolve():
+        raise ValueError("latest_path and best_path must differ.")
+
+    normalized_payload = dict(payload)
+    missing = REQUIRED_CHECKPOINT_KEYS - set(normalized_payload)
+    if missing:
+        raise KeyError(f"Checkpoint payload is missing keys: {sorted(missing)}.")
+
+    latest.parent.mkdir(parents=True, exist_ok=True)
+    latest_temp = latest.with_name(f".{latest.name}.tmp")
+    best_temp = (
+        None if best is None else best.with_name(f".{best.name}.tmp")
+    )
+
+    try:
+        torch.save(normalized_payload, latest_temp)
+        latest_temp.replace(latest)
+
+        saved_best: Path | None = None
+        if is_best and best is not None and best_temp is not None:
+            best.parent.mkdir(parents=True, exist_ok=True)
+            torch.save(normalized_payload, best_temp)
+            best_temp.replace(best)
+            saved_best = best
+        return latest, saved_best
+    except Exception as error:
+        raise OSError(
+            "Detection checkpoint save failed. "
+            f"Latest destination: {latest}."
+        ) from error
+    finally:
+        for temporary_path in (latest_temp, best_temp):
+            if temporary_path is not None and temporary_path.exists():
+                temporary_path.unlink()
+
+
+def load_detection_checkpoint_payload(
+    path: Path,
+    *,
+    map_location: str | torch.device = "cpu",
+) -> dict[str, Any]:
+    """?좊ː?????덈뒗 ?꾨줈?앺듃 Checkpoint瑜?CPU 湲곗??쇰줈 ?쎄퀬 Schema瑜?寃利앺븳??"""
+    checkpoint_path = _validate_checkpoint_path(path)
+    if not checkpoint_path.is_file():
+        raise FileNotFoundError(
+            f"Detection checkpoint does not exist: {checkpoint_path}."
+        )
+
+    try:
+        payload = torch.load(
+            checkpoint_path,
+            map_location=torch.device(map_location),
+            weights_only=True,
+        )
+    except TypeError:
+        # ?ㅻ옒??PyTorch????명솚??遺꾧린??
+        payload = torch.load(
+            checkpoint_path,
+            map_location=torch.device(map_location),
+        )
+    except Exception as error:
+        raise ValueError(
+            f"Could not load detection checkpoint: {checkpoint_path}."
+        ) from error
+
+    if not isinstance(payload, Mapping):
+        raise TypeError("Checkpoint top-level value must be a mapping.")
+    normalized = dict(payload)
+    missing = REQUIRED_CHECKPOINT_KEYS - set(normalized)
+    if missing:
+        raise KeyError(f"Checkpoint is missing keys: {sorted(missing)}.")
+
+    epoch = normalized["epoch"]
+    if not isinstance(epoch, int) or isinstance(epoch, bool) or epoch < 0:
+        raise ValueError("Checkpoint epoch must be a non-negative int.")
+    normalized["class_mapping"] = _validate_class_mapping(
+        normalized["class_mapping"]
+    )
+    if not isinstance(normalized["history"], list):
+        raise TypeError("Checkpoint history must be a list.")
+    return normalized
+
+
+def restore_detection_checkpoint(
+    *,
+    path: Path,
+    model: nn.Module,
+    optimizer: Optimizer | None = None,
+    scheduler: LRScheduler | None = None,
+    expected_class_mapping: Mapping[str, int] | None = None,
+    map_location: str | torch.device = "cpu",
+    strict: bool = True,
+) -> DetectionCheckpointState:
+    """Model怨??좏깮?곸씤 Optimizer쨌Scheduler ?곹깭瑜?蹂듭썝?쒕떎."""
+    if not isinstance(model, nn.Module):
+        raise TypeError("model must be torch.nn.Module.")
+    if optimizer is not None and not isinstance(optimizer, Optimizer):
+        raise TypeError("optimizer must be Optimizer or None.")
+    if scheduler is not None and not isinstance(scheduler, LRScheduler):
+        raise TypeError("scheduler must be LRScheduler or None.")
+    if not isinstance(strict, bool):
+        raise TypeError("strict must be bool.")
+
+    payload = load_detection_checkpoint_payload(
+        path,
+        map_location=map_location,
+    )
+    saved_mapping = _validate_class_mapping(payload["class_mapping"])
+    if expected_class_mapping is not None:
+        expected = _validate_class_mapping(expected_class_mapping)
+        if saved_mapping != expected:
+            raise ValueError(
+                "Checkpoint class_mapping does not match the current project."
+            )
+
+    model.load_state_dict(payload["model_state_dict"], strict=strict)
+    if optimizer is not None:
+        optimizer.load_state_dict(payload["optimizer_state_dict"])
+
+    saved_scheduler_state = payload["scheduler_state_dict"]
+    if scheduler is not None:
+        if saved_scheduler_state is None:
+            raise ValueError(
+                "Current scheduler was provided but checkpoint has no scheduler state."
+            )
+        scheduler.load_state_dict(saved_scheduler_state)
+
+    best_metric = float(payload["best_metric"])
+    if not torch.isfinite(torch.tensor(best_metric)):
+        raise ValueError("Checkpoint best_metric must be finite.")
+
+    history = payload["history"]
+    if any(not isinstance(item, Mapping) for item in history):
+        raise TypeError("Every checkpoint history item must be a mapping.")
+
+    epoch = int(payload["epoch"])
+    return DetectionCheckpointState(
+        epoch=epoch,
+        next_epoch=epoch + 1,
+        best_metric=best_metric,
+        training_config=dict(payload["training_config"]),
+        class_mapping=saved_mapping,
+        history=[dict(item) for item in history],
+    )
+
+
+====================================================================================================
+FILE: .\src\detection\model_factory.py
+====================================================================================================
+"""Torchvision Faster R-CNN ?앹꽦怨?NEU-DET 7-Class Head 援먯껜.
+
+[湲곗〈 肄붾뱶 李멸퀬]
+``model_config.py``?먯꽌 ?뺤젙??Architecture, Class Mapping, ?낅젰 ?ш린瑜??ъ슜?쒕떎.
+
+[?좉퇋 援ы쁽]
+- Weight ?ㅼ슫濡쒕뱶 ?щ?瑜?紐낆떆?곸쑝濡?遺꾨━?쒕떎.
+- Day 11 Smoke Test?먯꽌??Detection Weight? Backbone Weight瑜?紐⑤몢 ?덈떎.
+- Day 12?먯꽌??媛숈? Factory??pretrained ?ㅼ젙留??꾨떖???꾩씠?숈뒿 紐⑤뜽??留뚮뱺??
+- CPU Smoke Test???ㅽ뻾 ?쒓컙??以꾩씪 ?뚮쭔 Proposal ???쒗븳???좏깮?곸쑝濡??곸슜?쒕떎.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Any
+
+import torch
+from torch import nn
+from torchvision.models import MobileNet_V3_Large_Weights
+from torchvision.models.detection import (
+    FasterRCNN_MobileNet_V3_Large_320_FPN_Weights,
+    fasterrcnn_mobilenet_v3_large_320_fpn,
+)
+from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
+
+from src.detection.model_config import DetectionModelConfig
+
+
+@dataclass(frozen=True, slots=True)
+class DetectionProposalLimits:
+    """CPU Smoke Test?먯꽌 Proposal 怨꾩궛?됱쓣 ?쒗븳?섎뒗 ?좏깮 ?ㅼ젙.
+
+    Day 12 ?ㅼ젣 ?숈뒿?먯꽌?????ㅼ젙???꾨떖?섏? ?딆븘 Torchvision 湲곕낯媛믪쓣 ?대떎.
+    """
+
+    rpn_pre_nms_top_n_train: int = 40
+    rpn_post_nms_top_n_train: int = 20
+    rpn_pre_nms_top_n_test: int = 20
+    rpn_post_nms_top_n_test: int = 10
+    box_detections_per_img: int = 10
+
+    def __post_init__(self) -> None:
+        values = {
+            field_name: getattr(self, field_name)
+            for field_name in (
+                "rpn_pre_nms_top_n_train",
+                "rpn_post_nms_top_n_train",
+                "rpn_pre_nms_top_n_test",
+                "rpn_post_nms_top_n_test",
+                "box_detections_per_img",
+            )
+        }
+        for field_name, value in values.items():
+            if not isinstance(value, int) or isinstance(value, bool):
+                raise TypeError(f"{field_name} must be int.")
+            if value <= 0:
+                raise ValueError(f"{field_name} must be positive.")
+
+        if self.rpn_post_nms_top_n_train > self.rpn_pre_nms_top_n_train:
+            raise ValueError(
+                "rpn_post_nms_top_n_train must not exceed "
+                "rpn_pre_nms_top_n_train."
+            )
+        if self.rpn_post_nms_top_n_test > self.rpn_pre_nms_top_n_test:
+            raise ValueError(
+                "rpn_post_nms_top_n_test must not exceed "
+                "rpn_pre_nms_top_n_test."
+            )
+
+    def to_torchvision_kwargs(self) -> dict[str, int]:
+        return {
+            "rpn_pre_nms_top_n_train": self.rpn_pre_nms_top_n_train,
+            "rpn_post_nms_top_n_train": self.rpn_post_nms_top_n_train,
+            "rpn_pre_nms_top_n_test": self.rpn_pre_nms_top_n_test,
+            "rpn_post_nms_top_n_test": self.rpn_post_nms_top_n_test,
+            "box_detections_per_img": self.box_detections_per_img,
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class DetectionModelBuildResult:
+    """?앹꽦??紐⑤뜽怨??ы쁽 媛?ν븳 Build Metadata."""
+
+    model: nn.Module
+    metadata: dict[str, Any]
+
+
+def _resolve_device(device: str | torch.device) -> torch.device:
+    if isinstance(device, str):
+        resolved = torch.device(device)
+    elif isinstance(device, torch.device):
+        resolved = device
+    else:
+        raise TypeError("device must be str or torch.device.")
+
+    if resolved.type != "cpu":
+        raise ValueError(
+            "Day 11 model factory currently supports the verified CPU path only."
+        )
+    return resolved
+
+
+def _resolve_weight_arguments(
+    config: DetectionModelConfig,
+) -> tuple[
+    FasterRCNN_MobileNet_V3_Large_320_FPN_Weights | None,
+    MobileNet_V3_Large_Weights | None,
+]:
+    """?붿껌?섏? ?딆? Weight ?ㅼ슫濡쒕뱶媛 諛쒖깮?섏? ?딅룄濡?紐낆떆?곸쑝濡?諛섑솚?쒕떎."""
+    if config.use_pretrained_weights:
+        return (
+            FasterRCNN_MobileNet_V3_Large_320_FPN_Weights.DEFAULT,
+            None,
+        )
+    if config.use_pretrained_backbone:
+        return (None, MobileNet_V3_Large_Weights.DEFAULT)
+    return (None, None)
+
+
+def replace_detection_predictor(
+    model: nn.Module,
+    *,
+    num_classes: int,
+) -> nn.Module:
+    """湲곗〈 COCO Predictor瑜?Background ?ы븿 NEU-DET Class ?섎줈 援먯껜?쒕떎."""
+    if not isinstance(num_classes, int) or isinstance(num_classes, bool):
+        raise TypeError("num_classes must be int.")
+    if num_classes < 2:
+        raise ValueError("num_classes must include background and one object class.")
+
+    try:
+        current_predictor = model.roi_heads.box_predictor  # type: ignore[attr-defined]
+        in_features = current_predictor.cls_score.in_features
+    except AttributeError as error:
+        raise TypeError(
+            "model must expose roi_heads.box_predictor.cls_score.in_features."
+        ) from error
+
+    model.roi_heads.box_predictor = FastRCNNPredictor(  # type: ignore[attr-defined]
+        in_features,
+        num_classes,
+    )
+    return model
+
+
+def create_detection_model(
+    *,
+    config: DetectionModelConfig | None = None,
+    device: str | torch.device = "cpu",
+    training: bool = False,
+    proposal_limits: DetectionProposalLimits | None = None,
+) -> DetectionModelBuildResult:
+    """MobileNetV3 Faster R-CNN???앹꽦?섍퀬 7-Class Head瑜?蹂댁옣?쒕떎.
+
+    ``use_pretrained_weights=False``? ``use_pretrained_backbone=False``?대㈃
+    ``weights=None``怨?``weights_backbone=None``??紐⑤몢 ?꾨떖?섎?濡??ㅽ듃?뚰겕
+    ?ㅼ슫濡쒕뱶媛 諛쒖깮?섏? ?딅뒗??
+    """
+    resolved_config = config or DetectionModelConfig()
+    if not isinstance(resolved_config, DetectionModelConfig):
+        raise TypeError("config must be DetectionModelConfig.")
+    if not isinstance(training, bool):
+        raise TypeError("training must be bool.")
+    if proposal_limits is not None and not isinstance(
+        proposal_limits,
+        DetectionProposalLimits,
+    ):
+        raise TypeError("proposal_limits must be DetectionProposalLimits or None.")
+
+    resolved_device = _resolve_device(device)
+    detection_weights, backbone_weights = _resolve_weight_arguments(
+        resolved_config
+    )
+
+    constructor_kwargs: dict[str, Any] = {
+        "weights": detection_weights,
+        "weights_backbone": backbone_weights,
+        "progress": resolved_config.progress,
+        "min_size": resolved_config.min_size,
+        "max_size": resolved_config.max_size,
+    }
+    if proposal_limits is not None:
+        constructor_kwargs.update(proposal_limits.to_torchvision_kwargs())
+
+    # Full Detection Weight??COCO Head瑜??ы븿?섎?濡?num_classes瑜??앹꽦?먯뿉
+    # ?꾨떖?섏? ?딄퀬 ?앹꽦 ??Predictor瑜?援먯껜?쒕떎.
+    if detection_weights is None:
+        constructor_kwargs["num_classes"] = resolved_config.num_classes
+
+    model = fasterrcnn_mobilenet_v3_large_320_fpn(**constructor_kwargs)
+
+    current_output_classes = int(model.roi_heads.box_predictor.cls_score.out_features)
+    if current_output_classes != resolved_config.num_classes:
+        replace_detection_predictor(
+            model,
+            num_classes=resolved_config.num_classes,
+        )
+
+    model.to(resolved_device)
+    model.train(mode=training)
+
+    output_classes = int(model.roi_heads.box_predictor.cls_score.out_features)
+    if output_classes != resolved_config.num_classes:
+        raise RuntimeError(
+            "Detection predictor output class count does not match config."
+        )
+
+    metadata: dict[str, Any] = {
+        "architecture": resolved_config.architecture,
+        "device": str(resolved_device),
+        "training_mode": bool(model.training),
+        "num_defect_classes": resolved_config.num_defect_classes,
+        "num_classes_with_background": resolved_config.num_classes,
+        "class_to_index": resolved_config.class_to_index,
+        "min_size": resolved_config.min_size,
+        "max_size": resolved_config.max_size,
+        "pretrained_detection_weights": (
+            None if detection_weights is None else str(detection_weights)
+        ),
+        "pretrained_backbone_weights": (
+            None if backbone_weights is None else str(backbone_weights)
+        ),
+        "network_download_requested": bool(
+            detection_weights is not None or backbone_weights is not None
+        ),
+        "predictor_output_classes": output_classes,
+        "proposal_limits": (
+            None
+            if proposal_limits is None
+            else proposal_limits.to_torchvision_kwargs()
+        ),
+    }
+    return DetectionModelBuildResult(model=model, metadata=metadata)
+
+
+====================================================================================================
+FILE: .\src\detection\model_config.py
+====================================================================================================
+"""Day 11 Object Detection 怨듯넻 Class쨌Model ?ㅼ젙.
+
+[洹몃?濡??ъ궗??
+Day 9 ``dataset_config.py``???대? ?뺤젙??NEU-DET Class ?쒖꽌?
+Torchvision 紐⑤뜽 Label Mapping????紐⑤뱢???⑥씪 湲곗??쇰줈 ?ъ슜?쒕떎.
+
+???뚯씪? 紐⑤뜽 Weight瑜??ㅼ슫濡쒕뱶?섍굅??Detection Model???앹꽦?섏? ?딅뒗??
+Dataset, DataLoader, Model Factory媛 怨듭쑀??寃利앸맂 ?ㅼ젙 怨꾩빟留??쒓났?쒕떎.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Final, Literal, Sequence, cast
+
+from src.detection.dataset_config import (
+    DETECTION_MODEL_CLASS_TO_INDEX,
+    NEU_DET_CANONICAL_CLASSES,
+)
+
+
+SUPPORTED_ARCHITECTURE: Final[str] = (
+    "fasterrcnn_mobilenet_v3_large_320_fpn"
+)
+SUPPORTED_SPLITS: Final[tuple[str, ...]] = (
+    "train",
+    "validation",
+    "test",
+)
+DuplicateBoxPolicy = Literal["preserve", "remove_exact"]
+
+
+def _find_background_class_name() -> str:
+    """Day 9 紐⑤뜽 Mapping?먯꽌 Label 0??Class ?대쫫??李얜뒗??"""
+    matches = [
+        class_name
+        for class_name, class_index in DETECTION_MODEL_CLASS_TO_INDEX.items()
+        if class_index == 0
+    ]
+    if len(matches) != 1:
+        raise RuntimeError(
+            "DETECTION_MODEL_CLASS_TO_INDEX must contain exactly one "
+            "background class with index 0."
+        )
+    return matches[0]
+
+
+BACKGROUND_CLASS_NAME: Final[str] = _find_background_class_name()
+DEFAULT_DEFECT_CLASS_NAMES: Final[tuple[str, ...]] = tuple(
+    NEU_DET_CANONICAL_CLASSES
+)
+
+
+def validate_defect_class_names(
+    class_names: Sequence[str],
+) -> tuple[str, ...]:
+    """寃고븿 Class ?쒖꽌瑜?寃利앺븯怨?蹂寃?遺덇??ν븳 Tuple濡?諛섑솚?쒕떎."""
+    if isinstance(class_names, (str, bytes)):
+        raise TypeError("class_names must be a sequence of strings.")
+
+    normalized = tuple(class_names)
+    if not normalized:
+        raise ValueError("class_names must not be empty.")
+    if any(not isinstance(name, str) for name in normalized):
+        raise TypeError("Every class name must be str.")
+    if any(not name.strip() for name in normalized):
+        raise ValueError("Class names must not be blank.")
+    if len(set(normalized)) != len(normalized):
+        raise ValueError("class_names must not contain duplicates.")
+    if BACKGROUND_CLASS_NAME in normalized:
+        raise ValueError(
+            "The background class must not be included in defect class names."
+        )
+
+    return normalized
+
+
+def build_detection_label_maps(
+    class_names: Sequence[str] = DEFAULT_DEFECT_CLASS_NAMES,
+) -> tuple[dict[str, int], dict[int, str]]:
+    """Background=0, ?ㅼ젣 寃고븿=1..N??Detection Mapping??留뚮뱺??
+
+    湲곕낯 NEU-DET Class瑜??ъ슜???뚮뒗 Day 9?먯꽌 ?대? ?뺤젙??    ``DETECTION_MODEL_CLASS_TO_INDEX``瑜?洹몃?濡?蹂듭궗?쒕떎. ?뚯뒪??Fixture泥섎읆
+    ?ъ슜???뺤쓽 Class ?쒖꽌瑜?諛쏆쓣 ?뚮쭔 媛숈? 洹쒖튃?쇰줈 ??Mapping??留뚮뱺??
+    """
+    normalized = validate_defect_class_names(class_names)
+
+    if normalized == DEFAULT_DEFECT_CLASS_NAMES:
+        class_to_index = dict(DETECTION_MODEL_CLASS_TO_INDEX)
+    else:
+        class_to_index = {BACKGROUND_CLASS_NAME: 0}
+        class_to_index.update(
+            {
+                class_name: class_index
+                for class_index, class_name in enumerate(normalized, start=1)
+            }
+        )
+
+    expected_indexes = set(range(len(normalized) + 1))
+    if set(class_to_index.values()) != expected_indexes:
+        raise RuntimeError(
+            "Detection label indexes must be contiguous from 0 to "
+            "num_defect_classes."
+        )
+    if class_to_index.get(BACKGROUND_CLASS_NAME) != 0:
+        raise RuntimeError("The background label index must be 0.")
+
+    defect_to_index = {
+        class_name: class_to_index[class_name]
+        for class_name in normalized
+    }
+    index_to_class = {
+        class_index: class_name
+        for class_name, class_index in class_to_index.items()
+    }
+    return defect_to_index, index_to_class
+
+
+def validate_split_name(split: str) -> str:
+    """Day 9 Manifest媛 ?쒓났?섎뒗 ??Split留??덉슜?쒕떎."""
+    if not isinstance(split, str):
+        raise TypeError("split must be str.")
+    if split not in SUPPORTED_SPLITS:
+        raise ValueError(
+            f"Unsupported split: {split!r}. Supported: {SUPPORTED_SPLITS}."
+        )
+    return split
+
+
+def validate_duplicate_box_policy(policy: str) -> DuplicateBoxPolicy:
+    """?먮낯 蹂댁〈 ?먮뒗 ?꾩쟾??媛숈? Class쨌醫뚰몴留??쒓굅?섎룄濡??쒗븳?쒕떎."""
+    if not isinstance(policy, str):
+        raise TypeError("duplicate_box_policy must be str.")
+    if policy not in {"preserve", "remove_exact"}:
+        raise ValueError(
+            "duplicate_box_policy must be 'preserve' or 'remove_exact'."
+        )
+    return cast(DuplicateBoxPolicy, policy)
+
+
+@dataclass(frozen=True, slots=True)
+class DetectionModelConfig:
+    """Day 11쨌12 Faster R-CNN 怨듯넻 ?ㅼ젙.
+
+    ?꾩옱 CPU ?섍꼍??湲곕낯 Architecture??MobileNetV3 Large 320 FPN?대떎.
+    Stage 1?먯꽌??Weight瑜??ъ슜?섏? ?딆쑝硫??ㅼ젣 ?앹꽦? ?ㅼ쓬 Model Factory媛
+    ?대떦?쒕떎.
+    """
+
+    architecture: str = SUPPORTED_ARCHITECTURE
+    defect_class_names: tuple[str, ...] = DEFAULT_DEFECT_CLASS_NAMES
+    min_size: int = 320
+    max_size: int = 320
+    use_pretrained_weights: bool = False
+    use_pretrained_backbone: bool = False
+    progress: bool = False
+
+    def __post_init__(self) -> None:
+        if self.architecture != SUPPORTED_ARCHITECTURE:
+            raise ValueError(
+                f"Unsupported architecture: {self.architecture!r}. "
+                f"Supported: {SUPPORTED_ARCHITECTURE!r}."
+            )
+
+        normalized = validate_defect_class_names(self.defect_class_names)
+        object.__setattr__(self, "defect_class_names", normalized)
+
+        if not isinstance(self.min_size, int) or isinstance(self.min_size, bool):
+            raise TypeError("min_size must be int.")
+        if not isinstance(self.max_size, int) or isinstance(self.max_size, bool):
+            raise TypeError("max_size must be int.")
+        if self.min_size <= 0:
+            raise ValueError("min_size must be positive.")
+        if self.max_size <= 0:
+            raise ValueError("max_size must be positive.")
+        if self.max_size < self.min_size:
+            raise ValueError(
+                "max_size must be greater than or equal to min_size."
+            )
+
+        for field_name in (
+            "use_pretrained_weights",
+            "use_pretrained_backbone",
+            "progress",
+        ):
+            if not isinstance(getattr(self, field_name), bool):
+                raise TypeError(f"{field_name} must be bool.")
+
+        if self.use_pretrained_weights and self.use_pretrained_backbone:
+            raise ValueError(
+                "Full pretrained detection weights and pretrained backbone "
+                "cannot both be requested explicitly."
+            )
+
+    @property
+    def num_defect_classes(self) -> int:
+        return len(self.defect_class_names)
+
+    @property
+    def num_classes(self) -> int:
+        """Background 1媛쒕? ?ы븿??Faster R-CNN 異쒕젰 Class ??"""
+        return self.num_defect_classes + 1
+
+    @property
+    def class_to_index(self) -> dict[str, int]:
+        return build_detection_label_maps(self.defect_class_names)[0]
+
+    @property
+    def index_to_class(self) -> dict[int, str]:
+        return build_detection_label_maps(self.defect_class_names)[1]
+
+
+====================================================================================================
+FILE: .\tests\test_prediction_api.py
+====================================================================================================
+from __future__ import annotations
+
+from io import BytesIO
+
+import pytest
+from fastapi.testclient import TestClient
+from PIL import Image
+
+from src.api.app import create_app
+from src.api.image_validation import ValidatedImage
+from src.api.schemas import PredictionResponse
+
+
+def _make_png_bytes() -> bytes:
+    image = Image.new("RGB", (32, 24), color=(10, 20, 30))
+    buffer = BytesIO()
+    image.save(buffer, format="PNG")
+    image.close()
+    return buffer.getvalue()
+
+
+class _DummyInferenceService:
+    def __init__(
+        self,
+        *,
+        prediction: int = 1,
+        fail_with_message: str | None = None,
+    ) -> None:
+        self.is_ready = True
+        self.model_name = "DummyModel"
+        self.model_version = "dummy-v1"
+        self.device_name = "cpu"
+        self.prediction = prediction
+        self.fail_with_message = fail_with_message
+
+    def predict(self, image: ValidatedImage) -> PredictionResponse:
+        if self.fail_with_message is not None:
+            raise RuntimeError(self.fail_with_message)
+
+        defect_probability = 0.9 if self.prediction == 1 else 0.1
+        raw_logit = 2.1972246 if self.prediction == 1 else -2.1972246
+        class_name = "DEFECT" if self.prediction == 1 else "NORMAL"
+
+        return PredictionResponse(
+            prediction=self.prediction,
+            prediction_class_name=class_name,
+            defect_probability=defect_probability,
+            normal_probability=1.0 - defect_probability,
+            raw_logit=raw_logit,
+            classification_threshold=0.5,
+            model_name=self.model_name,
+            model_version=self.model_version,
+            positive_class="DEFECT",
+            original_filename=image.original_filename,
+            content_type=image.content_type,
+            image_width=image.original_width,
+            image_height=image.original_height,
+            image_mode=image.original_mode,
+            inference_time_ms=0.1,
+        )
+
+
+def test_health_returns_loaded_model_metadata() -> None:
+    application = create_app(
+        service_factory=lambda: _DummyInferenceService(),
+    )
+
+    with TestClient(application) as client:
+        response = client.get("/api/v1/health")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "status": "ok",
+        "service": "Manufacturing Vision Defect Analysis System",
+        "model_loaded": True,
+        "model_name": "DummyModel",
+        "device": "cpu",
+    }
+
+
+@pytest.mark.parametrize(
+    ("prediction", "expected_class_name"),
+    [(1, "DEFECT"), (0, "NORMAL")],
+)
+def test_prediction_endpoint_returns_expected_class(
+    prediction: int,
+    expected_class_name: str,
+) -> None:
+    application = create_app(
+        service_factory=lambda: _DummyInferenceService(prediction=prediction),
+    )
+
+    with TestClient(application) as client:
+        response = client.post(
+            "/api/v1/predictions",
+            files={"file": ("sample.png", _make_png_bytes(), "image/png")},
+        )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["prediction"] == prediction
+    assert payload["prediction_class_name"] == expected_class_name
+    assert payload["positive_class"] == "DEFECT"
+    assert payload["classification_threshold"] == 0.5
+    assert payload["image_width"] == 32
+    assert payload["image_height"] == 24
+
+
+def test_missing_file_returns_project_error_schema() -> None:
+    application = create_app(
+        service_factory=lambda: _DummyInferenceService(),
+    )
+
+    with TestClient(application) as client:
+        response = client.post("/api/v1/predictions")
+
+    assert response.status_code == 400
+    assert response.json()["detail"]["code"] == "MISSING_FILE"
+
+
+def test_empty_file_returns_empty_file_error() -> None:
+    application = create_app(
+        service_factory=lambda: _DummyInferenceService(),
+    )
+
+    with TestClient(application) as client:
+        response = client.post(
+            "/api/v1/predictions",
+            files={"file": ("empty.jpg", b"", "image/jpeg")},
+        )
+
+    assert response.status_code == 400
+    assert response.json()["detail"]["code"] == "EMPTY_FILE"
+
+
+def test_corrupted_image_returns_invalid_image_error() -> None:
+    application = create_app(
+        service_factory=lambda: _DummyInferenceService(),
+    )
+
+    with TestClient(application) as client:
+        response = client.post(
+            "/api/v1/predictions",
+            files={"file": ("broken.jpg", b"broken", "image/jpeg")},
+        )
+
+    assert response.status_code == 400
+    assert response.json()["detail"]["code"] == "INVALID_IMAGE"
+
+
+def test_unsupported_content_type_returns_415() -> None:
+    application = create_app(
+        service_factory=lambda: _DummyInferenceService(),
+    )
+
+    with TestClient(application) as client:
+        response = client.post(
+            "/api/v1/predictions",
+            files={"file": ("sample.txt", b"text", "text/plain")},
+        )
+
+    assert response.status_code == 415
+    assert response.json()["detail"]["code"] == "UNSUPPORTED_FILE_TYPE"
+
+
+def test_model_not_ready_returns_503() -> None:
+    application = create_app(service_factory=None)
+
+    with TestClient(application) as client:
+        health_response = client.get("/api/v1/health")
+        prediction_response = client.post(
+            "/api/v1/predictions",
+            files={"file": ("sample.png", _make_png_bytes(), "image/png")},
+        )
+
+    assert health_response.status_code == 200
+    assert health_response.json()["model_loaded"] is False
+    assert prediction_response.status_code == 503
+    assert prediction_response.json()["detail"]["code"] == "MODEL_NOT_READY"
+
+
+def test_startup_failure_is_converted_to_model_not_ready() -> None:
+    def failing_factory():
+        raise RuntimeError(r"C:\secret\checkpoint.pt")
+
+    application = create_app(service_factory=failing_factory)
+
+    with TestClient(application) as client:
+        response = client.get("/api/v1/health")
+
+    assert response.status_code == 200
+    assert response.json()["model_loaded"] is False
+    assert "secret" not in response.text
+    assert "checkpoint.pt" not in response.text
+
+
+def test_internal_failure_does_not_expose_path_or_stack_trace() -> None:
+    secret_message = (
+        r"C:\Users\kflow\Downloads\manufacturing-vision-defect-analysis-system"
+        r"\models\checkpoints\resnet18_transfer_best.pt"
+    )
+    application = create_app(
+        service_factory=lambda: _DummyInferenceService(
+            fail_with_message=secret_message,
+        ),
+    )
+
+    with TestClient(application) as client:
+        response = client.post(
+            "/api/v1/predictions",
+            files={"file": ("sample.png", _make_png_bytes(), "image/png")},
+        )
+
+    assert response.status_code == 500
+    assert response.json()["detail"]["code"] == "INFERENCE_FAILED"
+    assert "kflow" not in response.text
+    assert "resnet18_transfer_best.pt" not in response.text
+    assert "Traceback" not in response.text
+
+
+====================================================================================================
+FILE: .\tests\test_inference_service.py
+====================================================================================================
+from __future__ import annotations
+
+import math
+
+import pytest
+import torch
+from PIL import Image
+from torch import nn
+
+from src.api.config import ApiSettings
+from src.api.image_validation import ValidatedImage
+from src.api.inference_service import ImageInferenceService, InferenceServiceError
+
+
+class _RecordingModel(nn.Module):
+    def __init__(self, output: object) -> None:
+        super().__init__()
+        self.output = output
+        self.inference_mode_enabled = False
+        self.seen_shape: tuple[int, ...] | None = None
+
+    def forward(self, inputs: torch.Tensor) -> object:
+        self.inference_mode_enabled = torch.is_inference_mode_enabled()
+        self.seen_shape = tuple(inputs.shape)
+        if isinstance(self.output, torch.Tensor):
+            return self.output.to(inputs.device)
+        return self.output
+
+
+def _transform(_: Image.Image) -> torch.Tensor:
+    return torch.ones((3, 224, 224), dtype=torch.float32)
+
+
+def _validated_image() -> ValidatedImage:
+    return ValidatedImage(
+        original_filename="sample.png",
+        content_type="image/png",
+        original_width=300,
+        original_height=300,
+        original_mode="RGB",
+        decoded_format="PNG",
+        rgb_image=Image.new("RGB", (300, 300), color=(20, 30, 40)),
+    )
+
+
+@pytest.mark.parametrize(
+    ("logit", "prediction", "class_name"),
+    [
+        (4.0, 1, "DEFECT"),
+        (-4.0, 0, "NORMAL"),
+        (0.0, 1, "DEFECT"),
+    ],
+)
+def test_logit_to_prediction_policy(
+    logit: float,
+    prediction: int,
+    class_name: str,
+) -> None:
+    model = _RecordingModel(torch.tensor([logit]))
+    service = ImageInferenceService(model=model, transform=_transform)
+    image = _validated_image()
+
+    result = service.predict(image)
+
+    assert result.prediction == prediction
+    assert result.prediction_class_name == class_name
+    assert result.normal_probability + result.defect_probability == pytest.approx(1.0)
+    assert model.training is False
+    assert model.inference_mode_enabled is True
+    assert model.seen_shape == (1, 3, 224, 224)
+    image.rgb_image.close()
+
+
+@pytest.mark.parametrize("invalid_value", [float("nan"), float("inf"), float("-inf")])
+def test_non_finite_model_output_is_rejected(invalid_value: float) -> None:
+    service = ImageInferenceService(
+        model=_RecordingModel(torch.tensor([invalid_value])),
+        transform=_transform,
+    )
+    image = _validated_image()
+
+    with pytest.raises(InferenceServiceError) as exc_info:
+        service.predict(image)
+
+    assert exc_info.value.code == "INVALID_MODEL_OUTPUT"
+    image.rgb_image.close()
+
+
+@pytest.mark.parametrize(
+    "invalid_output",
+    [torch.tensor(1.0), torch.tensor([[[1.0]]]), torch.tensor([1.0, 2.0])],
+)
+def test_invalid_output_shape_is_rejected(invalid_output: torch.Tensor) -> None:
+    service = ImageInferenceService(
+        model=_RecordingModel(invalid_output),
+        transform=_transform,
+    )
+    image = _validated_image()
+
+    with pytest.raises(InferenceServiceError) as exc_info:
+        service.predict(image)
+
+    assert exc_info.value.code == "INVALID_MODEL_OUTPUT"
+    image.rgb_image.close()
+
+
+def test_non_tensor_model_output_is_rejected() -> None:
+    service = ImageInferenceService(
+        model=_RecordingModel([1.0]),
+        transform=_transform,
+    )
+    image = _validated_image()
+
+    with pytest.raises(InferenceServiceError) as exc_info:
+        service.predict(image)
+
+    assert exc_info.value.code == "INVALID_MODEL_OUTPUT"
+    image.rgb_image.close()
+
+
+def test_invalid_transform_shape_is_rejected() -> None:
+    def invalid_transform(_: Image.Image) -> torch.Tensor:
+        return torch.ones((2, 3, 224, 224))
+
+    service = ImageInferenceService(
+        model=_RecordingModel(torch.tensor([1.0])),
+        transform=invalid_transform,
+    )
+    image = _validated_image()
+
+    with pytest.raises(InferenceServiceError) as exc_info:
+        service.predict(image)
+
+    assert exc_info.value.code == "INVALID_MODEL_INPUT"
+    image.rgb_image.close()
+
+
+def test_non_finite_transform_is_rejected() -> None:
+    def invalid_transform(_: Image.Image) -> torch.Tensor:
+        return torch.full((3, 224, 224), math.nan)
+
+    service = ImageInferenceService(
+        model=_RecordingModel(torch.tensor([1.0])),
+        transform=invalid_transform,
+    )
+    image = _validated_image()
+
+    with pytest.raises(InferenceServiceError) as exc_info:
+        service.predict(image)
+
+    assert exc_info.value.code == "INVALID_MODEL_INPUT"
+    image.rgb_image.close()
+
+
+def test_threshold_configuration_must_be_finite() -> None:
+    with pytest.raises(ValueError):
+        ImageInferenceService(
+            model=_RecordingModel(torch.tensor([1.0])),
+            transform=_transform,
+            settings=ApiSettings(classification_threshold=math.nan),
+        )
+
+
+====================================================================================================
+FILE: .\tests\test_api_image_validation.py
+====================================================================================================
+from __future__ import annotations
+
+import asyncio
+from io import BytesIO
+
+import pytest
+from PIL import Image
+
+from src.api.config import ApiSettings
+from src.api.image_validation import (
+    ImageValidationError,
+    decode_and_validate_image,
+    validate_uploaded_image,
+)
+
+
+def _make_image_bytes(
+    *,
+    image_format: str,
+    mode: str = "RGB",
+    size: tuple[int, int] = (32, 24),
+) -> bytes:
+    if mode == "RGBA":
+        color = (10, 20, 30, 120)
+    elif mode == "L":
+        color = 128
+    else:
+        color = (10, 20, 30)
+
+    image = Image.new(mode, size, color=color)
+    buffer = BytesIO()
+    image.save(buffer, format=image_format)
+    image.close()
+    return buffer.getvalue()
+
+
+class _AsyncUpload:
+    def __init__(self, *, filename: str, content_type: str, data: bytes) -> None:
+        self.filename = filename
+        self.content_type = content_type
+        self._buffer = BytesIO(data)
+
+    async def read(self, size: int = -1) -> bytes:
+        return self._buffer.read(size)
+
+
+@pytest.mark.parametrize(
+    ("image_format", "filename", "content_type"),
+    [
+        ("JPEG", "sample.jpg", "image/jpeg"),
+        ("JPEG", "sample.jpeg", "image/jpeg"),
+        ("PNG", "sample.png", "image/png"),
+    ],
+)
+def test_decode_supported_image(
+    image_format: str,
+    filename: str,
+    content_type: str,
+) -> None:
+    result = decode_and_validate_image(
+        data=_make_image_bytes(image_format=image_format),
+        filename=filename,
+        content_type=content_type,
+    )
+
+    assert result.decoded_format == image_format
+    assert result.original_width == 32
+    assert result.original_height == 24
+    assert result.rgb_image.mode == "RGB"
+    result.rgb_image.close()
+
+
+@pytest.mark.parametrize("mode", ["RGBA", "L"])
+def test_non_rgb_image_is_converted_to_rgb(mode: str) -> None:
+    result = decode_and_validate_image(
+        data=_make_image_bytes(image_format="PNG", mode=mode),
+        filename="sample.png",
+        content_type="image/png",
+    )
+
+    assert result.original_mode == mode
+    assert result.rgb_image.mode == "RGB"
+    result.rgb_image.close()
+
+
+def test_empty_file_is_rejected() -> None:
+    with pytest.raises(ImageValidationError) as exc_info:
+        decode_and_validate_image(
+            data=b"",
+            filename="empty.jpg",
+            content_type="image/jpeg",
+        )
+
+    assert exc_info.value.code == "EMPTY_FILE"
+    assert exc_info.value.status_code == 400
+
+
+def test_corrupted_image_is_rejected() -> None:
+    with pytest.raises(ImageValidationError) as exc_info:
+        decode_and_validate_image(
+            data=b"not-a-real-image",
+            filename="broken.jpg",
+            content_type="image/jpeg",
+        )
+
+    assert exc_info.value.code == "INVALID_IMAGE"
+
+
+def test_unsupported_extension_is_rejected() -> None:
+    with pytest.raises(ImageValidationError) as exc_info:
+        decode_and_validate_image(
+            data=_make_image_bytes(image_format="PNG"),
+            filename="sample.gif",
+            content_type="image/gif",
+        )
+
+    assert exc_info.value.code == "UNSUPPORTED_FILE_TYPE"
+    assert exc_info.value.status_code == 415
+
+
+def test_extension_and_content_type_mismatch_is_rejected() -> None:
+    with pytest.raises(ImageValidationError) as exc_info:
+        decode_and_validate_image(
+            data=_make_image_bytes(image_format="JPEG"),
+            filename="sample.jpg",
+            content_type="image/png",
+        )
+
+    assert exc_info.value.code == "UNSUPPORTED_FILE_TYPE"
+
+
+def test_metadata_and_actual_format_mismatch_is_rejected() -> None:
+    with pytest.raises(ImageValidationError) as exc_info:
+        decode_and_validate_image(
+            data=_make_image_bytes(image_format="PNG"),
+            filename="sample.jpg",
+            content_type="image/jpeg",
+        )
+
+    assert exc_info.value.code == "UNSUPPORTED_FILE_TYPE"
+
+
+def test_upload_size_limit_is_enforced() -> None:
+    upload = _AsyncUpload(
+        filename="large.jpg",
+        content_type="image/jpeg",
+        data=b"x" * 101,
+    )
+    settings = ApiSettings(max_upload_bytes=100)
+
+    with pytest.raises(ImageValidationError) as exc_info:
+        asyncio.run(
+            validate_uploaded_image(
+                upload,  # type: ignore[arg-type]
+                settings=settings,
+            )
+        )
+
+    assert exc_info.value.code == "FILE_TOO_LARGE"
+    assert exc_info.value.status_code == 413
+
+
+def test_pixel_limit_is_enforced() -> None:
+    settings = ApiSettings(max_image_pixels=399)
+
+    with pytest.raises(ImageValidationError) as exc_info:
+        decode_and_validate_image(
+            data=_make_image_bytes(image_format="PNG", size=(20, 20)),
+            filename="large.png",
+            content_type="image/png",
+            settings=settings,
+        )
+
+    assert exc_info.value.code == "IMAGE_TOO_LARGE"
+    assert exc_info.value.status_code == 413
+
+
+====================================================================================================
+FILE: .\tests\test_api_model_loader.py
+====================================================================================================
+from __future__ import annotations
+
+from pathlib import Path
+
+import pytest
+import torch
+from PIL import Image
+from torch import nn
+
+from src.api.config import ApiSettings
+from src.api.inference_service import ImageInferenceService
+from src.api.model_loader import create_production_inference_service
+
+
+class _DummyModel(nn.Module):
+    def forward(self, inputs: torch.Tensor) -> torch.Tensor:
+        return torch.zeros((inputs.shape[0],), dtype=torch.float32)
+
+
+def test_production_loader_reuses_existing_checkpoint_and_test_transform(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    checkpoint_path = tmp_path / "resnet18_transfer_best.pt"
+    checkpoint_path.write_bytes(b"checkpoint-placeholder")
+
+    calls: dict[str, object] = {}
+    dummy_model = _DummyModel()
+
+    def fake_restore_best_checkpoint(*, checkpoint_path: Path, device: torch.device):
+        calls["checkpoint_path"] = checkpoint_path
+        calls["device"] = device
+        return dummy_model
+
+    def fake_create_test_transform():
+        calls["transform_created"] = True
+
+        def transform(_: Image.Image) -> torch.Tensor:
+            return torch.zeros((3, 224, 224), dtype=torch.float32)
+
+        return transform
+
+    monkeypatch.setattr(
+        "src.api.model_loader.restore_best_checkpoint",
+        fake_restore_best_checkpoint,
+    )
+    monkeypatch.setattr(
+        "src.api.model_loader.create_test_transform",
+        fake_create_test_transform,
+    )
+
+    service = create_production_inference_service(
+        settings=ApiSettings(checkpoint_path=checkpoint_path),
+    )
+
+    assert isinstance(service, ImageInferenceService)
+    assert calls["checkpoint_path"] == checkpoint_path.resolve()
+    assert calls["device"] == torch.device("cpu")
+    assert calls["transform_created"] is True
+    assert service.model is dummy_model
+    assert service.model.training is False
+
+
+def test_production_loader_rejects_missing_checkpoint(tmp_path: Path) -> None:
+    with pytest.raises(FileNotFoundError, match="Best Checkpoint"):
+        create_production_inference_service(
+            settings=ApiSettings(
+                checkpoint_path=tmp_path / "missing.pt",
+            )
+        )
+
+
