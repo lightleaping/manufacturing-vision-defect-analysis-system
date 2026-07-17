@@ -38,3 +38,6 @@ uvicorn
 python-multipart
 httpx
 pydantic
+
+# Day 8 - Streamlit Image Inference Dashboard
+streamlit

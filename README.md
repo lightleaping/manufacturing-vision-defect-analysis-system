@@ -1,4 +1,4 @@
-﻿# Manufacturing Vision Defect Analysis System
+# Manufacturing Vision Defect Analysis System
 
 제조 이미지를 활용하여 정상·불량을 분류하고, 모델 학습부터 성능 평가·오분류 분석·시각적 설명·추론 API·대시보드까지 연결하는 제조 Vision 프로젝트입니다.
 
@@ -2306,3 +2306,129 @@ Full Regression Tests: 1255 passed
 Grad-CAM은 Gradient·Hook·Backward가 필요한 별도 책임이므로 향후 Explain
 Endpoint로 분리할 수 있습니다.
 <!-- DAY7_FASTAPI_INFERENCE_END -->
+
+---
+
+<!-- DAY8_STREAMLIT_DASHBOARD_START -->
+## Day 8 — Streamlit Image Inference Dashboard
+
+Day 7 FastAPI를 추론 Backend로 유지하고, Streamlit은 이미지 업로드·Preview·
+HTTP 요청·결과 표시를 담당하는 단일 페이지 Dashboard로 구현했습니다.
+
+### Architecture
+
+```text
+Browser
+→ Streamlit Dashboard
+→ DashboardApiClient
+→ FastAPI /api/v1/predictions
+→ ResNet18Transfer
+→ JSON Response
+→ Session State
+→ Prediction Card
+```
+
+Streamlit에서는 Checkpoint를 직접 로딩하지 않으며 확률도 다시 계산하지 않습니다.
+FastAPI가 반환한 Prediction, 확률, Raw Logit과 Metadata를 검증한 뒤 표시합니다.
+
+### Dashboard Features
+
+```text
+Image Upload and Preview
+FastAPI Health and Model Loaded Status
+NORMAL / DEFECT Prediction Card
+P(DEFECT) and P(NORMAL)
+Raw Logit and Inference Time
+Model and Image Metadata
+Session State
+Safe API Error Messages
+```
+
+### Real Validation
+
+```text
+Health Model Loaded : True
+Model               : ResNet18Transfer
+Device              : cpu
+
+NORMAL Image        : cast_ok_0_7631.jpeg
+NORMAL Prediction   : NORMAL
+NORMAL P(DEFECT)    : 0.013476800174
+
+DEFECT Image        : cast_def_0_1414.jpeg
+DEFECT Prediction   : DEFECT
+DEFECT P(DEFECT)    : 0.999903678894
+
+UI Visual Validation: PASS
+```
+
+Screenshots:
+
+```text
+reports/figures/day8_streamlit_dashboard_normal.png
+reports/figures/day8_streamlit_dashboard_defect.png
+```
+
+![Day 8 NORMAL Dashboard](reports/figures/day8_streamlit_dashboard_normal.png)
+
+![Day 8 DEFECT Dashboard](reports/figures/day8_streamlit_dashboard_defect.png)
+
+Artifact and Report:
+
+```text
+reports/artifacts/day8_streamlit_dashboard_validation.json
+reports/day8_streamlit_image_inference_dashboard_summary.md
+```
+
+Tests:
+
+```text
+Initial Day 8 Dashboard Tests: 45 passed
+Full Regression Tests        : 1315 passed
+Warnings                     : 1
+```
+
+Grad-CAM은 Day 6에서 수행한 별도 설명 가능성 분석입니다. Day 8 기본 Dashboard는
+빠른 Prediction 결과를 우선 제공하며, 실제 생산 공정의 최종 품질 판정을
+대체하지 않습니다.
+<!-- DAY8_STREAMLIT_DASHBOARD_END -->
+
+<!-- DAY9_OBJECT_DETECTION_DATASET_START -->
+## Day 9 — Object Detection Dataset Analysis
+
+기존 Casting 분류 데이터는 이미지 전체의 정상·불량 Label만 제공하므로, 결함 종류와 위치를 학습할 수 있는 **NEU-DET 객체 탐지 데이터셋**을 별도 `src/detection` 계층으로 추가했습니다.
+
+```text
+Classification: 이미지 → NORMAL / DEFECT
+Detection:      이미지 → 결함 Class + Bounding Box + Confidence
+```
+
+### 실제 분석 결과
+
+| 항목 | 결과 |
+|---|---:|
+| 이미지 | 1,800 |
+| XML Annotation | 1,800 |
+| 유효 Record | 1,800 |
+| Bounding Box | 4,189 |
+| Class | 6 |
+| 손상 이미지 | 0 |
+| 잘못된 Box | 0 |
+| 최종 Error | 0 |
+
+원본에서 `crazing_240` 이미지와 XML이 서로 다른 Partition에 배치된 문제와 동일 Hash 이미지 1개 그룹을 발견했습니다. 원본은 수정하지 않고 Manifest 수준에서 유일 Pair를 연결했으며, 동일 Hash 그룹을 하나의 최종 Split 안에 유지해 평가 누수를 방지했습니다.
+
+| Split | 이미지 | Box | 중복 Hash 그룹 |
+|---|---:|---:|---:|
+| Train | 1440 | 3335 | 1 |
+| Validation | 178 | 425 | 0 |
+| Test | 182 | 429 | 0 |
+
+- Split 경로 중복: `0`
+- Split 간 동일 Hash 누수: `0`
+- 전체 Record 보존: `True`
+- 좌표 정책: `pascal_voc_one_based_inclusive_likely`
+- 전체 회귀 테스트: `1,368 passed, 1 warning`
+
+자세한 결과는 `reports/day9_object_detection_dataset_analysis_summary.md`와 Day 9 Artifact·Figure에서 확인할 수 있습니다.
+<!-- DAY9_OBJECT_DETECTION_DATASET_END -->

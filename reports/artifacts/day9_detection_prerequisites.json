@@ -1,0 +1,1725 @@
+{
+  "generated_at_utc": "2026-07-16T14:18:40.766391+00:00",
+  "project_root": "C:\\Users\\kflow\\Downloads\\manufacturing-vision-defect-analysis-system",
+  "environment": {
+    "python": "3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]",
+    "python_executable": "C:\\Users\\kflow\\Downloads\\manufacturing-vision-defect-analysis-system\\.venv\\Scripts\\python.exe",
+    "platform": "Windows-10-10.0.26200-SP0",
+    "machine": "AMD64",
+    "processor": "Intel64 Family 6 Model 126 Stepping 5, GenuineIntel"
+  },
+  "disk": {
+    "total_bytes": 238184034304,
+    "used_bytes": 237721427968,
+    "free_bytes": 462606336,
+    "free_gib": 0.431
+  },
+  "packages": {
+    "torch": "2.12.0+cpu",
+    "torchvision": "0.27.0+cpu",
+    "Pillow": "12.3.0",
+    "matplotlib": "3.11.0",
+    "opencv-python": null,
+    "opencv-contrib-python": null,
+    "lxml": null,
+    "torchmetrics": null,
+    "pycocotools": null,
+    "streamlit": "1.59.2",
+    "httpx": "0.28.1",
+    "httpx2": null
+  },
+  "cv2_import": {
+    "success": false,
+    "error_type": "ModuleNotFoundError",
+    "message": "No module named 'cv2'"
+  },
+  "xml_support": {
+    "xml.etree.ElementTree": true,
+    "note": "Pascal VOC XML Parser는 표준 라이브러리로 구현 가능"
+  },
+  "files": {
+    "requirements.txt": {
+      "exists": true,
+      "size_bytes": 1017
+    },
+    "README.md": {
+      "exists": true,
+      "size_bytes": 35315
+    },
+    ".gitignore": {
+      "exists": true,
+      "size_bytes": 2339
+    }
+  },
+  "directories": {
+    "data": {
+      "exists": true,
+      "total_files": 8538,
+      "total_directories": 15,
+      "entries_truncated": true,
+      "entries": [
+        {
+          "path": "data/processed",
+          "type": "directory",
+          "size_bytes": null
+        },
+        {
+          "path": "data/processed/.gitkeep",
+          "type": "file",
+          "size_bytes": 0
+        },
+        {
+          "path": "data/raw",
+          "type": "directory",
+          "size_bytes": null
+        },
+        {
+          "path": "data/raw/.gitkeep",
+          "type": "file",
+          "size_bytes": 0
+        },
+        {
+          "path": "data/raw/casting_product_images",
+          "type": "directory",
+          "size_bytes": null
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512",
+          "type": "directory",
+          "size_bytes": null
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512",
+          "type": "directory",
+          "size_bytes": null
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front",
+          "type": "directory",
+          "size_bytes": null
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_2280.jpeg",
+          "type": "file",
+          "size_bytes": 26299
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_2284.jpeg",
+          "type": "file",
+          "size_bytes": 27562
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_2299.jpeg",
+          "type": "file",
+          "size_bytes": 27459
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_2304.jpeg",
+          "type": "file",
+          "size_bytes": 26983
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_2305.jpeg",
+          "type": "file",
+          "size_bytes": 23557
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_231.jpeg",
+          "type": "file",
+          "size_bytes": 24751
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_2310.jpeg",
+          "type": "file",
+          "size_bytes": 23860
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_2320.jpeg",
+          "type": "file",
+          "size_bytes": 27818
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_2330.jpeg",
+          "type": "file",
+          "size_bytes": 25323
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_2358.jpeg",
+          "type": "file",
+          "size_bytes": 28153
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_238.jpeg",
+          "type": "file",
+          "size_bytes": 23329
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_2388.jpeg",
+          "type": "file",
+          "size_bytes": 25314
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_240.jpeg",
+          "type": "file",
+          "size_bytes": 28310
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_2422.jpeg",
+          "type": "file",
+          "size_bytes": 29113
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_2426.jpeg",
+          "type": "file",
+          "size_bytes": 25585
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_2437.jpeg",
+          "type": "file",
+          "size_bytes": 24933
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_2450.jpeg",
+          "type": "file",
+          "size_bytes": 28380
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_2474.jpeg",
+          "type": "file",
+          "size_bytes": 24457
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_2480.jpeg",
+          "type": "file",
+          "size_bytes": 27903
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_2483.jpeg",
+          "type": "file",
+          "size_bytes": 24391
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_2485.jpeg",
+          "type": "file",
+          "size_bytes": 26080
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_25.jpeg",
+          "type": "file",
+          "size_bytes": 22643
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_2515.jpeg",
+          "type": "file",
+          "size_bytes": 28613
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_255.jpeg",
+          "type": "file",
+          "size_bytes": 29983
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_2576.jpeg",
+          "type": "file",
+          "size_bytes": 21069
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_2582.jpeg",
+          "type": "file",
+          "size_bytes": 24247
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_2592.jpeg",
+          "type": "file",
+          "size_bytes": 25315
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_2614.jpeg",
+          "type": "file",
+          "size_bytes": 28543
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_2624.jpeg",
+          "type": "file",
+          "size_bytes": 24266
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_2639.jpeg",
+          "type": "file",
+          "size_bytes": 26532
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_2640.jpeg",
+          "type": "file",
+          "size_bytes": 26764
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_2649.jpeg",
+          "type": "file",
+          "size_bytes": 26065
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_2654.jpeg",
+          "type": "file",
+          "size_bytes": 24789
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_2663.jpeg",
+          "type": "file",
+          "size_bytes": 20821
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_2683.jpeg",
+          "type": "file",
+          "size_bytes": 23575
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_2690.jpeg",
+          "type": "file",
+          "size_bytes": 23723
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_2691.jpeg",
+          "type": "file",
+          "size_bytes": 27136
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_2700.jpeg",
+          "type": "file",
+          "size_bytes": 26109
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_2701.jpeg",
+          "type": "file",
+          "size_bytes": 26307
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_2708.jpeg",
+          "type": "file",
+          "size_bytes": 27777
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_2733.jpeg",
+          "type": "file",
+          "size_bytes": 28292
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_2745.jpeg",
+          "type": "file",
+          "size_bytes": 24417
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_2753.jpeg",
+          "type": "file",
+          "size_bytes": 26251
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_2798.jpeg",
+          "type": "file",
+          "size_bytes": 22936
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_2808.jpeg",
+          "type": "file",
+          "size_bytes": 26188
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_2820.jpeg",
+          "type": "file",
+          "size_bytes": 22765
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_2832.jpeg",
+          "type": "file",
+          "size_bytes": 26614
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_2834.jpeg",
+          "type": "file",
+          "size_bytes": 20045
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_2837.jpeg",
+          "type": "file",
+          "size_bytes": 25977
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_2855.jpeg",
+          "type": "file",
+          "size_bytes": 25676
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_2887.jpeg",
+          "type": "file",
+          "size_bytes": 16033
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_2892.jpeg",
+          "type": "file",
+          "size_bytes": 27047
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_2900.jpeg",
+          "type": "file",
+          "size_bytes": 27228
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_2917.jpeg",
+          "type": "file",
+          "size_bytes": 23052
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_2937.jpeg",
+          "type": "file",
+          "size_bytes": 28017
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_2950.jpeg",
+          "type": "file",
+          "size_bytes": 19203
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_2966.jpeg",
+          "type": "file",
+          "size_bytes": 27620
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_2973.jpeg",
+          "type": "file",
+          "size_bytes": 26926
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_2994.jpeg",
+          "type": "file",
+          "size_bytes": 27765
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3010.jpeg",
+          "type": "file",
+          "size_bytes": 29686
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3016.jpeg",
+          "type": "file",
+          "size_bytes": 30170
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3050.jpeg",
+          "type": "file",
+          "size_bytes": 23267
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3056.jpeg",
+          "type": "file",
+          "size_bytes": 26862
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3070.jpeg",
+          "type": "file",
+          "size_bytes": 22841
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3074.jpeg",
+          "type": "file",
+          "size_bytes": 22100
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3098.jpeg",
+          "type": "file",
+          "size_bytes": 26911
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3104.jpeg",
+          "type": "file",
+          "size_bytes": 25945
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3105.jpeg",
+          "type": "file",
+          "size_bytes": 19504
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_311.jpeg",
+          "type": "file",
+          "size_bytes": 21228
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3114.jpeg",
+          "type": "file",
+          "size_bytes": 29937
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3136.jpeg",
+          "type": "file",
+          "size_bytes": 27483
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3148.jpeg",
+          "type": "file",
+          "size_bytes": 23100
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3179.jpeg",
+          "type": "file",
+          "size_bytes": 27874
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_318.jpeg",
+          "type": "file",
+          "size_bytes": 28955
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3185.jpeg",
+          "type": "file",
+          "size_bytes": 27091
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3199.jpeg",
+          "type": "file",
+          "size_bytes": 22857
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3220.jpeg",
+          "type": "file",
+          "size_bytes": 23785
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3223.jpeg",
+          "type": "file",
+          "size_bytes": 23789
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_324.jpeg",
+          "type": "file",
+          "size_bytes": 24504
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3246.jpeg",
+          "type": "file",
+          "size_bytes": 26981
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3252.jpeg",
+          "type": "file",
+          "size_bytes": 26393
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3265.jpeg",
+          "type": "file",
+          "size_bytes": 24943
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3279.jpeg",
+          "type": "file",
+          "size_bytes": 26089
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3285.jpeg",
+          "type": "file",
+          "size_bytes": 28286
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_33.jpeg",
+          "type": "file",
+          "size_bytes": 28792
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3311.jpeg",
+          "type": "file",
+          "size_bytes": 27396
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_333.jpeg",
+          "type": "file",
+          "size_bytes": 22691
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3334.jpeg",
+          "type": "file",
+          "size_bytes": 27194
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3341.jpeg",
+          "type": "file",
+          "size_bytes": 25944
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3344.jpeg",
+          "type": "file",
+          "size_bytes": 27645
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_335.jpeg",
+          "type": "file",
+          "size_bytes": 23985
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3354.jpeg",
+          "type": "file",
+          "size_bytes": 26632
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3362.jpeg",
+          "type": "file",
+          "size_bytes": 26257
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_337.jpeg",
+          "type": "file",
+          "size_bytes": 26501
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3394.jpeg",
+          "type": "file",
+          "size_bytes": 23490
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3396.jpeg",
+          "type": "file",
+          "size_bytes": 28329
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3403.jpeg",
+          "type": "file",
+          "size_bytes": 26417
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3431.jpeg",
+          "type": "file",
+          "size_bytes": 26927
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3434.jpeg",
+          "type": "file",
+          "size_bytes": 27588
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3454.jpeg",
+          "type": "file",
+          "size_bytes": 24243
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3457.jpeg",
+          "type": "file",
+          "size_bytes": 24335
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3460.jpeg",
+          "type": "file",
+          "size_bytes": 28204
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3480.jpeg",
+          "type": "file",
+          "size_bytes": 31016
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3487.jpeg",
+          "type": "file",
+          "size_bytes": 26613
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3495.jpeg",
+          "type": "file",
+          "size_bytes": 28848
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3513.jpeg",
+          "type": "file",
+          "size_bytes": 28534
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3536.jpeg",
+          "type": "file",
+          "size_bytes": 27062
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_354.jpeg",
+          "type": "file",
+          "size_bytes": 30111
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_356.jpeg",
+          "type": "file",
+          "size_bytes": 21339
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3565.jpeg",
+          "type": "file",
+          "size_bytes": 26317
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3569.jpeg",
+          "type": "file",
+          "size_bytes": 28526
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_360.jpeg",
+          "type": "file",
+          "size_bytes": 25248
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_361.jpeg",
+          "type": "file",
+          "size_bytes": 27136
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3617.jpeg",
+          "type": "file",
+          "size_bytes": 27120
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3618.jpeg",
+          "type": "file",
+          "size_bytes": 20868
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3626.jpeg",
+          "type": "file",
+          "size_bytes": 23970
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3631.jpeg",
+          "type": "file",
+          "size_bytes": 27683
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3646.jpeg",
+          "type": "file",
+          "size_bytes": 26942
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3680.jpeg",
+          "type": "file",
+          "size_bytes": 24058
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3685.jpeg",
+          "type": "file",
+          "size_bytes": 26979
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_369.jpeg",
+          "type": "file",
+          "size_bytes": 23186
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3691.jpeg",
+          "type": "file",
+          "size_bytes": 22760
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3703.jpeg",
+          "type": "file",
+          "size_bytes": 28162
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3704.jpeg",
+          "type": "file",
+          "size_bytes": 24415
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3710.jpeg",
+          "type": "file",
+          "size_bytes": 24273
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3735.jpeg",
+          "type": "file",
+          "size_bytes": 30747
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3741.jpeg",
+          "type": "file",
+          "size_bytes": 25845
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3751.jpeg",
+          "type": "file",
+          "size_bytes": 25228
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3756.jpeg",
+          "type": "file",
+          "size_bytes": 24788
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3793.jpeg",
+          "type": "file",
+          "size_bytes": 26794
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3796.jpeg",
+          "type": "file",
+          "size_bytes": 29176
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3797.jpeg",
+          "type": "file",
+          "size_bytes": 27812
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_380.jpeg",
+          "type": "file",
+          "size_bytes": 27593
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3812.jpeg",
+          "type": "file",
+          "size_bytes": 23789
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3818.jpeg",
+          "type": "file",
+          "size_bytes": 25885
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_383.jpeg",
+          "type": "file",
+          "size_bytes": 23077
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3831.jpeg",
+          "type": "file",
+          "size_bytes": 24489
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3855.jpeg",
+          "type": "file",
+          "size_bytes": 23970
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3856.jpeg",
+          "type": "file",
+          "size_bytes": 20582
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3867.jpeg",
+          "type": "file",
+          "size_bytes": 26215
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3869.jpeg",
+          "type": "file",
+          "size_bytes": 26692
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3882.jpeg",
+          "type": "file",
+          "size_bytes": 26820
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3894.jpeg",
+          "type": "file",
+          "size_bytes": 30462
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3916.jpeg",
+          "type": "file",
+          "size_bytes": 28307
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3945.jpeg",
+          "type": "file",
+          "size_bytes": 26774
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3949.jpeg",
+          "type": "file",
+          "size_bytes": 23206
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3963.jpeg",
+          "type": "file",
+          "size_bytes": 24438
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3970.jpeg",
+          "type": "file",
+          "size_bytes": 26917
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3978.jpeg",
+          "type": "file",
+          "size_bytes": 20878
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3989.jpeg",
+          "type": "file",
+          "size_bytes": 23846
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3992.jpeg",
+          "type": "file",
+          "size_bytes": 26553
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_3993.jpeg",
+          "type": "file",
+          "size_bytes": 26984
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_4017.jpeg",
+          "type": "file",
+          "size_bytes": 27117
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_4023.jpeg",
+          "type": "file",
+          "size_bytes": 24983
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_4026.jpeg",
+          "type": "file",
+          "size_bytes": 26520
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_4030.jpeg",
+          "type": "file",
+          "size_bytes": 27863
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_4032.jpeg",
+          "type": "file",
+          "size_bytes": 25743
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_4034.jpeg",
+          "type": "file",
+          "size_bytes": 30184
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_4090.jpeg",
+          "type": "file",
+          "size_bytes": 26508
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_4093.jpeg",
+          "type": "file",
+          "size_bytes": 23275
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_4106.jpeg",
+          "type": "file",
+          "size_bytes": 28337
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_4108.jpeg",
+          "type": "file",
+          "size_bytes": 29873
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_4109.jpeg",
+          "type": "file",
+          "size_bytes": 20377
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_4119.jpeg",
+          "type": "file",
+          "size_bytes": 24633
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_4125.jpeg",
+          "type": "file",
+          "size_bytes": 25800
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_4129.jpeg",
+          "type": "file",
+          "size_bytes": 25059
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_4158.jpeg",
+          "type": "file",
+          "size_bytes": 23167
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_4171.jpeg",
+          "type": "file",
+          "size_bytes": 23679
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_42.jpeg",
+          "type": "file",
+          "size_bytes": 26296
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_421.jpeg",
+          "type": "file",
+          "size_bytes": 25544
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_4228.jpeg",
+          "type": "file",
+          "size_bytes": 27890
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_4229.jpeg",
+          "type": "file",
+          "size_bytes": 28240
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_4239.jpeg",
+          "type": "file",
+          "size_bytes": 25766
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_4264.jpeg",
+          "type": "file",
+          "size_bytes": 26703
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_430.jpeg",
+          "type": "file",
+          "size_bytes": 30321
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_4336.jpeg",
+          "type": "file",
+          "size_bytes": 23355
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_4355.jpeg",
+          "type": "file",
+          "size_bytes": 26770
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_4360.jpeg",
+          "type": "file",
+          "size_bytes": 27180
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_4363.jpeg",
+          "type": "file",
+          "size_bytes": 28405
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_4379.jpeg",
+          "type": "file",
+          "size_bytes": 27651
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_4394.jpeg",
+          "type": "file",
+          "size_bytes": 27696
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_4407.jpeg",
+          "type": "file",
+          "size_bytes": 26037
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_4412.jpeg",
+          "type": "file",
+          "size_bytes": 26938
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_4453.jpeg",
+          "type": "file",
+          "size_bytes": 23799
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_4459.jpeg",
+          "type": "file",
+          "size_bytes": 29012
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_4484.jpeg",
+          "type": "file",
+          "size_bytes": 20189
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_4501.jpeg",
+          "type": "file",
+          "size_bytes": 26223
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_4526.jpeg",
+          "type": "file",
+          "size_bytes": 30610
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_4568.jpeg",
+          "type": "file",
+          "size_bytes": 28207
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_4574.jpeg",
+          "type": "file",
+          "size_bytes": 26030
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_4577.jpeg",
+          "type": "file",
+          "size_bytes": 29217
+        },
+        {
+          "path": "data/raw/casting_product_images/casting_512x512/casting_512x512/def_front/cast_def_0_4583.jpeg",
+          "type": "file",
+          "size_bytes": 29808
+        }
+      ]
+    },
+    "src/data": {
+      "exists": true,
+      "total_files": 8,
+      "total_directories": 0,
+      "entries_truncated": false,
+      "entries": [
+        {
+          "path": "src/data/__init__.py",
+          "type": "file",
+          "size_bytes": 0
+        },
+        {
+          "path": "src/data/data_loader.py",
+          "type": "file",
+          "size_bytes": 25261
+        },
+        {
+          "path": "src/data/dataset_analysis.py",
+          "type": "file",
+          "size_bytes": 25790
+        },
+        {
+          "path": "src/data/dataset_config.py",
+          "type": "file",
+          "size_bytes": 3135
+        },
+        {
+          "path": "src/data/dataset_split.py",
+          "type": "file",
+          "size_bytes": 24634
+        },
+        {
+          "path": "src/data/dataset_visualization.py",
+          "type": "file",
+          "size_bytes": 16407
+        },
+        {
+          "path": "src/data/image_dataset.py",
+          "type": "file",
+          "size_bytes": 18120
+        },
+        {
+          "path": "src/data/image_transforms.py",
+          "type": "file",
+          "size_bytes": 8966
+        }
+      ]
+    },
+    "src/models": {
+      "exists": true,
+      "total_files": 3,
+      "total_directories": 0,
+      "entries_truncated": false,
+      "entries": [
+        {
+          "path": "src/models/__init__.py",
+          "type": "file",
+          "size_bytes": 0
+        },
+        {
+          "path": "src/models/cnn_baseline.py",
+          "type": "file",
+          "size_bytes": 18564
+        },
+        {
+          "path": "src/models/resnet18_transfer.py",
+          "type": "file",
+          "size_bytes": 13039
+        }
+      ]
+    },
+    "src/api": {
+      "exists": true,
+      "total_files": 7,
+      "total_directories": 0,
+      "entries_truncated": false,
+      "entries": [
+        {
+          "path": "src/api/__init__.py",
+          "type": "file",
+          "size_bytes": 192
+        },
+        {
+          "path": "src/api/app.py",
+          "type": "file",
+          "size_bytes": 6343
+        },
+        {
+          "path": "src/api/config.py",
+          "type": "file",
+          "size_bytes": 1330
+        },
+        {
+          "path": "src/api/image_validation.py",
+          "type": "file",
+          "size_bytes": 8655
+        },
+        {
+          "path": "src/api/inference_service.py",
+          "type": "file",
+          "size_bytes": 6525
+        },
+        {
+          "path": "src/api/model_loader.py",
+          "type": "file",
+          "size_bytes": 1522
+        },
+        {
+          "path": "src/api/schemas.py",
+          "type": "file",
+          "size_bytes": 1130
+        }
+      ]
+    },
+    "src/dashboard": {
+      "exists": true,
+      "total_files": 7,
+      "total_directories": 0,
+      "entries_truncated": false,
+      "entries": [
+        {
+          "path": "src/dashboard/__init__.py",
+          "type": "file",
+          "size_bytes": 61
+        },
+        {
+          "path": "src/dashboard/api_client.py",
+          "type": "file",
+          "size_bytes": 11686
+        },
+        {
+          "path": "src/dashboard/app.py",
+          "type": "file",
+          "size_bytes": 9532
+        },
+        {
+          "path": "src/dashboard/config.py",
+          "type": "file",
+          "size_bytes": 4254
+        },
+        {
+          "path": "src/dashboard/session_state.py",
+          "type": "file",
+          "size_bytes": 2390
+        },
+        {
+          "path": "src/dashboard/styles.py",
+          "type": "file",
+          "size_bytes": 1136
+        },
+        {
+          "path": "src/dashboard/ui_helpers.py",
+          "type": "file",
+          "size_bytes": 3945
+        }
+      ]
+    },
+    "src/detection": {
+      "exists": false,
+      "entries": []
+    },
+    "scripts": {
+      "exists": true,
+      "total_files": 20,
+      "total_directories": 0,
+      "entries_truncated": false,
+      "entries": [
+        {
+          "path": "scripts/create_day6_docs.py",
+          "type": "file",
+          "size_bytes": 34400
+        },
+        {
+          "path": "scripts/create_day7_docs.py",
+          "type": "file",
+          "size_bytes": 27079
+        },
+        {
+          "path": "scripts/create_day8_docs.py",
+          "type": "file",
+          "size_bytes": 26341
+        },
+        {
+          "path": "scripts/finalize_day8_visual_validation.py",
+          "type": "file",
+          "size_bytes": 7189
+        },
+        {
+          "path": "scripts/fix_day7_docs_test_assertion.py",
+          "type": "file",
+          "size_bytes": 1021
+        },
+        {
+          "path": "scripts/inspect_day7_api_prerequisites.py",
+          "type": "file",
+          "size_bytes": 4334
+        },
+        {
+          "path": "scripts/inspect_day7_api_prerequisites_v2.py",
+          "type": "file",
+          "size_bytes": 11535
+        },
+        {
+          "path": "scripts/inspect_day8_dashboard_prerequisites.py",
+          "type": "file",
+          "size_bytes": 2218
+        },
+        {
+          "path": "scripts/inspect_day9_detection_prerequisites.py",
+          "type": "file",
+          "size_bytes": 9387
+        },
+        {
+          "path": "scripts/run_day3_cnn_baseline_evaluation.py",
+          "type": "file",
+          "size_bytes": 54891
+        },
+        {
+          "path": "scripts/run_day3_cnn_baseline_training.py",
+          "type": "file",
+          "size_bytes": 56692
+        },
+        {
+          "path": "scripts/run_day4_resnet18_evaluation.py",
+          "type": "file",
+          "size_bytes": 36855
+        },
+        {
+          "path": "scripts/run_day4_resnet18_training.py",
+          "type": "file",
+          "size_bytes": 25428
+        },
+        {
+          "path": "scripts/run_day5_misclassification_analysis.py",
+          "type": "file",
+          "size_bytes": 7503
+        },
+        {
+          "path": "scripts/run_day6_resnet18_gradcam.py",
+          "type": "file",
+          "size_bytes": 12273
+        },
+        {
+          "path": "scripts/run_day7_api_validation.py",
+          "type": "file",
+          "size_bytes": 11025
+        },
+        {
+          "path": "scripts/run_day8_dashboard_validation.py",
+          "type": "file",
+          "size_bytes": 6417
+        },
+        {
+          "path": "scripts/update_day7_docs_test_expectations.py",
+          "type": "file",
+          "size_bytes": 1418
+        },
+        {
+          "path": "scripts/update_day7_requirements.py",
+          "type": "file",
+          "size_bytes": 2064
+        },
+        {
+          "path": "scripts/update_day8_requirements.py",
+          "type": "file",
+          "size_bytes": 2006
+        }
+      ]
+    },
+    "tests": {
+      "exists": true,
+      "total_files": 44,
+      "total_directories": 0,
+      "entries_truncated": false,
+      "entries": [
+        {
+          "path": "tests/__init__.py",
+          "type": "file",
+          "size_bytes": 0
+        },
+        {
+          "path": "tests/test_api_image_validation.py",
+          "type": "file",
+          "size_bytes": 4903
+        },
+        {
+          "path": "tests/test_api_model_loader.py",
+          "type": "file",
+          "size_bytes": 2197
+        },
+        {
+          "path": "tests/test_checkpoint_loader.py",
+          "type": "file",
+          "size_bytes": 83833
+        },
+        {
+          "path": "tests/test_classification_metrics.py",
+          "type": "file",
+          "size_bytes": 56407
+        },
+        {
+          "path": "tests/test_cnn_baseline.py",
+          "type": "file",
+          "size_bytes": 18817
+        },
+        {
+          "path": "tests/test_create_day7_docs.py",
+          "type": "file",
+          "size_bytes": 6101
+        },
+        {
+          "path": "tests/test_create_day8_docs.py",
+          "type": "file",
+          "size_bytes": 6952
+        },
+        {
+          "path": "tests/test_dashboard_api_client.py",
+          "type": "file",
+          "size_bytes": 7160
+        },
+        {
+          "path": "tests/test_dashboard_app.py",
+          "type": "file",
+          "size_bytes": 1645
+        },
+        {
+          "path": "tests/test_dashboard_config.py",
+          "type": "file",
+          "size_bytes": 1409
+        },
+        {
+          "path": "tests/test_dashboard_session_state.py",
+          "type": "file",
+          "size_bytes": 3277
+        },
+        {
+          "path": "tests/test_dashboard_styles.py",
+          "type": "file",
+          "size_bytes": 591
+        },
+        {
+          "path": "tests/test_dashboard_ui_helpers.py",
+          "type": "file",
+          "size_bytes": 3597
+        },
+        {
+          "path": "tests/test_data_loader.py",
+          "type": "file",
+          "size_bytes": 32107
+        },
+        {
+          "path": "tests/test_dataset_config_and_analysis.py",
+          "type": "file",
+          "size_bytes": 7554
+        },
+        {
+          "path": "tests/test_dataset_split.py",
+          "type": "file",
+          "size_bytes": 16498
+        },
+        {
+          "path": "tests/test_dataset_summary_and_visualization.py",
+          "type": "file",
+          "size_bytes": 17057
+        },
+        {
+          "path": "tests/test_day4_resnet18_evaluation.py",
+          "type": "file",
+          "size_bytes": 9704
+        },
+        {
+          "path": "tests/test_day4_resnet18_training.py",
+          "type": "file",
+          "size_bytes": 6120
+        },
+        {
+          "path": "tests/test_day5_misclassification_analysis.py",
+          "type": "file",
+          "size_bytes": 3839
+        },
+        {
+          "path": "tests/test_day6_resnet18_gradcam.py",
+          "type": "file",
+          "size_bytes": 3930
+        },
+        {
+          "path": "tests/test_day7_api_validation.py",
+          "type": "file",
+          "size_bytes": 1596
+        },
+        {
+          "path": "tests/test_day8_dashboard_validation.py",
+          "type": "file",
+          "size_bytes": 2417
+        },
+        {
+          "path": "tests/test_epoch_runner.py",
+          "type": "file",
+          "size_bytes": 71708
+        },
+        {
+          "path": "tests/test_evaluation_runner.py",
+          "type": "file",
+          "size_bytes": 95744
+        },
+        {
+          "path": "tests/test_finalize_day8_visual_validation.py",
+          "type": "file",
+          "size_bytes": 3450
+        },
+        {
+          "path": "tests/test_gradcam.py",
+          "type": "file",
+          "size_bytes": 5524
+        },
+        {
+          "path": "tests/test_gradcam_pipeline.py",
+          "type": "file",
+          "size_bytes": 6772
+        },
+        {
+          "path": "tests/test_gradcam_sample_selector.py",
+          "type": "file",
+          "size_bytes": 4084
+        },
+        {
+          "path": "tests/test_gradcam_visualization.py",
+          "type": "file",
+          "size_bytes": 4103
+        },
+        {
+          "path": "tests/test_image_dataset.py",
+          "type": "file",
+          "size_bytes": 22325
+        },
+        {
+          "path": "tests/test_image_transforms.py",
+          "type": "file",
+          "size_bytes": 16913
+        },
+        {
+          "path": "tests/test_inference_service.py",
+          "type": "file",
+          "size_bytes": 4814
+        },
+        {
+          "path": "tests/test_loss_function.py",
+          "type": "file",
+          "size_bytes": 25374
+        },
+        {
+          "path": "tests/test_misclassification_analysis.py",
+          "type": "file",
+          "size_bytes": 10924
+        },
+        {
+          "path": "tests/test_misclassification_visualization.py",
+          "type": "file",
+          "size_bytes": 6797
+        },
+        {
+          "path": "tests/test_optimizer.py",
+          "type": "file",
+          "size_bytes": 28695
+        },
+        {
+          "path": "tests/test_prediction_api.py",
+          "type": "file",
+          "size_bytes": 6996
+        },
+        {
+          "path": "tests/test_reproducibility.py",
+          "type": "file",
+          "size_bytes": 14072
+        },
+        {
+          "path": "tests/test_resnet18_transfer.py",
+          "type": "file",
+          "size_bytes": 9849
+        },
+        {
+          "path": "tests/test_run_day3_cnn_baseline_evaluation.py",
+          "type": "file",
+          "size_bytes": 64157
+        },
+        {
+          "path": "tests/test_training_pipeline.py",
+          "type": "file",
+          "size_bytes": 91774
+        },
+        {
+          "path": "tests/test_update_day8_requirements.py",
+          "type": "file",
+          "size_bytes": 439
+        }
+      ]
+    },
+    "reports/artifacts": {
+      "exists": true,
+      "total_files": 14,
+      "total_directories": 0,
+      "entries_truncated": false,
+      "entries": [
+        {
+          "path": "reports/artifacts/day1_class_distribution.png",
+          "type": "file",
+          "size_bytes": 55670
+        },
+        {
+          "path": "reports/artifacts/day1_dataset_analysis.csv",
+          "type": "file",
+          "size_bytes": 1383234
+        },
+        {
+          "path": "reports/artifacts/day1_dataset_summary.json",
+          "type": "file",
+          "size_bytes": 1376
+        },
+        {
+          "path": "reports/artifacts/day1_sample_images.png",
+          "type": "file",
+          "size_bytes": 1181428
+        },
+        {
+          "path": "reports/artifacts/day3_cnn_baseline_test_evaluation.json",
+          "type": "file",
+          "size_bytes": 275147
+        },
+        {
+          "path": "reports/artifacts/day3_cnn_baseline_training_history.json",
+          "type": "file",
+          "size_bytes": 3711
+        },
+        {
+          "path": "reports/artifacts/day4_cnn_resnet18_comparison.json",
+          "type": "file",
+          "size_bytes": 2993
+        },
+        {
+          "path": "reports/artifacts/day4_resnet18_test_evaluation.json",
+          "type": "file",
+          "size_bytes": 290880
+        },
+        {
+          "path": "reports/artifacts/day4_resnet18_training_history.json",
+          "type": "file",
+          "size_bytes": 4084
+        },
+        {
+          "path": "reports/artifacts/day5_resnet18_misclassification_analysis.json",
+          "type": "file",
+          "size_bytes": 20399
+        },
+        {
+          "path": "reports/artifacts/day6_resnet18_gradcam_analysis.json",
+          "type": "file",
+          "size_bytes": 13521
+        },
+        {
+          "path": "reports/artifacts/day7_fastapi_inference_validation.json",
+          "type": "file",
+          "size_bytes": 1892
+        },
+        {
+          "path": "reports/artifacts/day8_streamlit_dashboard_validation.json",
+          "type": "file",
+          "size_bytes": 2355
+        },
+        {
+          "path": "reports/artifacts/day9_detection_prerequisites.json",
+          "type": "file",
+          "size_bytes": 58944
+        }
+      ]
+    },
+    "reports/figures": {
+      "exists": true,
+      "total_files": 8,
+      "total_directories": 0,
+      "entries_truncated": false,
+      "entries": [
+        {
+          "path": "reports/figures/day5_resnet18_all_misclassifications.png",
+          "type": "file",
+          "size_bytes": 3973280
+        },
+        {
+          "path": "reports/figures/day5_resnet18_false_negatives.png",
+          "type": "file",
+          "size_bytes": 1320094
+        },
+        {
+          "path": "reports/figures/day5_resnet18_false_positives.png",
+          "type": "file",
+          "size_bytes": 2736635
+        },
+        {
+          "path": "reports/figures/day6_resnet18_gradcam_boundary_errors.png",
+          "type": "file",
+          "size_bytes": 387459
+        },
+        {
+          "path": "reports/figures/day6_resnet18_gradcam_high_confidence_errors.png",
+          "type": "file",
+          "size_bytes": 544234
+        },
+        {
+          "path": "reports/figures/day6_resnet18_gradcam_overview.png",
+          "type": "file",
+          "size_bytes": 1191265
+        },
+        {
+          "path": "reports/figures/day8_streamlit_dashboard_defect.png",
+          "type": "file",
+          "size_bytes": 204518
+        },
+        {
+          "path": "reports/figures/day8_streamlit_dashboard_normal.png",
+          "type": "file",
+          "size_bytes": 227152
+        }
+      ]
+    },
+    "models/checkpoints": {
+      "exists": true,
+      "total_files": 2,
+      "total_directories": 0,
+      "entries_truncated": false,
+      "entries": [
+        {
+          "path": "models/checkpoints/cnn_baseline_best.pt",
+          "type": "file",
+          "size_bytes": 83761
+        },
+        {
+          "path": "models/checkpoints/resnet18_transfer_best.pt",
+          "type": "file",
+          "size_bytes": 44796651
+        }
+      ]
+    }
+  },
+  "raw_dataset_directories": [
+    "data/raw/casting_product_images"
+  ],
+  "existing_detection_related_files": [
+    "scripts/inspect_day9_detection_prerequisites.py"
+  ],
+  "relevant_requirement_lines": [
+    "Pillow",
+    "matplotlib",
+    "# Day 2 - PyTorch Dataset, Transform, and DataLoader",
+    "# CPU-only PyTorch",
+    "# The extra PyTorch package index is required to install",
+    "# torch and torchvision versions with the \"+cpu\" build tag.",
+    "--extra-index-url https://download.pytorch.org/whl/cpu",
+    "torch==2.12.0+cpu",
+    "torchvision==0.27.0+cpu",
+    "httpx",
+    "# Day 8 - Streamlit Image Inference Dashboard",
+    "streamlit"
+  ]
+}

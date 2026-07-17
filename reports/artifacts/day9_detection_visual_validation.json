@@ -1,0 +1,49 @@
+{
+  "day": 9,
+  "validation_name": "object_detection_dataset_figures",
+  "status": "PASS",
+  "validated_at_utc": "2026-07-16T15:48:19.296058+00:00",
+  "manual_checks": {
+    "class_distribution": true,
+    "box_statistics": true,
+    "annotation_overview": true
+  },
+  "all_manual_checks_passed": true,
+  "machine_checks": {
+    "required_figure_count": 3,
+    "decoded_figure_count": 3,
+    "all_files_exist": true,
+    "all_files_non_empty": true,
+    "all_files_decodable": true
+  },
+  "figures": [
+    {
+      "path": "reports/figures/day9_detection_class_distribution.png",
+      "filename": "day9_detection_class_distribution.png",
+      "size_bytes": 48136,
+      "width": 1920,
+      "height": 960,
+      "format": "PNG",
+      "decode_valid": true
+    },
+    {
+      "path": "reports/figures/day9_detection_box_statistics.png",
+      "filename": "day9_detection_box_statistics.png",
+      "size_bytes": 495558,
+      "width": 1920,
+      "height": 1440,
+      "format": "PNG",
+      "decode_valid": true
+    },
+    {
+      "path": "reports/figures/day9_detection_annotation_overview.png",
+      "filename": "day9_detection_annotation_overview.png",
+      "size_bytes": 445833,
+      "width": 2400,
+      "height": 1440,
+      "format": "PNG",
+      "decode_valid": true
+    }
+  ],
+  "notes": "6개 Class, Box 통계, Annotation Overlay를 확인했으며 글자 겹침과 좌표 이탈이 없음"
+}
