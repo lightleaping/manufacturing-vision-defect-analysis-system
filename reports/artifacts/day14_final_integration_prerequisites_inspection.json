@@ -1,6 +1,6 @@
 {
   "schema_version": 5,
-  "generated_at_utc": "2026-07-17T11:13:15.006212+00:00",
+  "generated_at_utc": "2026-07-17T22:49:22.695926+00:00",
   "project": {
     "name": "Manufacturing Vision Defect Analysis System",
     "project_root": "C:\\Users\\kflow\\Downloads\\manufacturing-vision-defect-analysis-system",
@@ -12,8 +12,12 @@
     "encoding": "utf-8-sig",
     "read_error": null,
     "markers": {
-      "marker_group_count": 11,
-      "days_found": [
+      "marker_group_count": 0,
+      "days_found": [],
+      "missing_days_1_to_13": [
+        1,
+        2,
+        3,
         4,
         5,
         6,
@@ -23,103 +27,23 @@
         10,
         11,
         12,
-        13,
-        14
+        13
       ],
-      "missing_days_1_to_13": [
-        1,
-        2,
-        3
-      ],
-      "marker_details": {
-        "DAY10_OPENCV_IMAGE_ANALYSIS": {
-          "start_count": 1,
-          "end_count": 1
-        },
-        "DAY11_DETECTION_DATASET_MODEL": {
-          "start_count": 1,
-          "end_count": 1
-        },
-        "DAY12_DETECTION_TRAINING_EVALUATION": {
-          "start_count": 1,
-          "end_count": 1
-        },
-        "DAY13_DETECTION_FASTAPI_STREAMLIT": {
-          "start_count": 1,
-          "end_count": 1
-        },
-        "DAY14_FINAL_INTEGRATION": {
-          "start_count": 1,
-          "end_count": 1
-        },
-        "DAY4_RESNET18": {
-          "start_count": 1,
-          "end_count": 1
-        },
-        "DAY5_MISCLASSIFICATION": {
-          "start_count": 1,
-          "end_count": 1
-        },
-        "DAY6_GRADCAM": {
-          "start_count": 1,
-          "end_count": 1
-        },
-        "DAY7_FASTAPI_INFERENCE": {
-          "start_count": 1,
-          "end_count": 1
-        },
-        "DAY8_STREAMLIT_DASHBOARD": {
-          "start_count": 1,
-          "end_count": 1
-        },
-        "DAY9_OBJECT_DETECTION_DATASET": {
-          "start_count": 1,
-          "end_count": 1
-        }
-      },
+      "marker_details": {},
       "invalid_or_duplicate_pairs": [],
       "all_day_1_to_13_present": false,
       "all_pairs_single": true
     },
     "pytest_counts": {
       "counts_found": [
-        1110,
-        1110,
-        1110,
-        1141,
-        23,
-        1164,
-        40,
-        1255,
-        40,
-        1255,
-        45,
-        1315,
-        368,
-        62,
-        1440,
-        52,
-        1492,
-        84,
-        1576,
-        92,
-        1668,
-        69,
+        1737,
         1737
       ],
       "maximum_count_found": 1737,
-      "contains_day13_final_count_1668": true
+      "contains_day13_final_count_1668": false
     },
     "relative_links": {
       "checked_relative_links": [
-        {
-          "target": "reports/figures/day8_streamlit_dashboard_normal.png",
-          "exists": true
-        },
-        {
-          "target": "reports/figures/day8_streamlit_dashboard_defect.png",
-          "exists": true
-        },
         {
           "target": "reports/day14_final_integration_portfolio_interview_summary.md",
           "exists": true
@@ -129,7 +53,23 @@
           "exists": true
         },
         {
-          "target": "reports/day14_final_integration_readme_architecture_plan.md",
+          "target": "reports/artifacts/day4_resnet18_test_evaluation.json",
+          "exists": true
+        },
+        {
+          "target": "reports/artifacts/day12_detection_evaluation.json",
+          "exists": true
+        },
+        {
+          "target": "reports/artifacts/day12_detection_failure_analysis.json",
+          "exists": true
+        },
+        {
+          "target": "reports/",
+          "exists": true
+        },
+        {
+          "target": "reports/figures/",
           "exists": true
         }
       ],
@@ -139,8 +79,8 @@
   },
   "inventory": {
     "counts": {
-      "report_markdown": 15,
-      "artifacts": 43,
+      "report_markdown": 17,
+      "artifacts": 45,
       "figures": 22,
       "src_files": 168,
       "test_files": 263,
@@ -275,6 +215,8 @@
       }
     },
     "reports": [
+      "reports/artifacts/backups/README.before_portfolio_final.20260718_074834.md",
+      "reports/artifacts/backups/README.before_portfolio_final.20260718_074859.md",
       "reports/day10_opencv_image_analysis_pipeline_summary.md",
       "reports/day11_detection_dataset_and_model_implementation_summary.md",
       "reports/day12_detection_training_evaluation_and_failure_analysis_summary.md",
@@ -293,6 +235,8 @@
     ],
     "artifacts": [
       "reports/artifacts/backups/day13_api_core_context.before_utf8_rebuild.77032c0f502c.txt",
+      "reports/artifacts/backups/README.before_portfolio_final.20260718_074834.md",
+      "reports/artifacts/backups/README.before_portfolio_final.20260718_074859.md",
       "reports/artifacts/backups/README.md.before_day14_final_docs",
       "reports/artifacts/day10_opencv_image_analysis.json",
       "reports/artifacts/day10_opencv_visual_validation.json",
@@ -5497,7 +5441,7 @@
     "errors": [],
     "warnings": [],
     "information": [
-      "README에 Marker가 없는 기존 Day가 있습니다: Day 1, Day 2, Day 3. Marker 부재만으로 본문 누락을 의미하지 않습니다."
+      "README에 Marker가 없는 기존 Day가 있습니다: Day 1, Day 2, Day 3, Day 4, Day 5, Day 6, Day 7, Day 8, Day 9, Day 10, Day 11, Day 12, Day 13. Marker 부재만으로 본문 누락을 의미하지 않습니다."
     ],
     "error_count": 0,
     "warning_count": 0,

@@ -1,0 +1,2684 @@
+# Manufacturing Vision Defect Analysis System
+
+제조 이미지를 활용하여 정상·불량을 분류하고, 모델 학습부터 성능 평가·오분류 분석·시각적 설명·추론 API·대시보드까지 연결하는 제조 Vision 프로젝트입니다.
+
+한국어 프로젝트명:
+
+**제조 비전 결함 분석 시스템**
+
+---
+
+## 1. Project Overview
+
+제조 품질 검사에서는 제품 이미지에서 불량 여부를 빠르고 일관되게 판단하는 것이 중요합니다.
+
+수작업 검사만 사용하는 경우 검사자의 경험과 피로도에 따라 판단 편차가 발생할 수 있으며, 생산량이 증가하면 모든 이미지를 동일한 기준으로 검사하기 어렵습니다.
+
+이 프로젝트는 제조 이미지를 입력받아 다음 흐름을 구현하는 것을 목표로 합니다.
+
+```text
+Manufacturing Image
+
+↓
+
+Image Data Analysis
+
+↓
+
+PyTorch Dataset
+
+↓
+
+DataLoader
+
+↓
+
+CNN Baseline
+
+↓
+
+ResNet18 Transfer Learning
+
+↓
+
+Accuracy
+
+Precision
+
+Recall
+
+F1 Score
+
+Confusion Matrix
+
+↓
+
+Misclassification Analysis
+
+↓
+
+Grad-CAM
+
+↓
+
+FastAPI Inference API
+
+↓
+
+Streamlit Dashboard
+```
+
+현재까지는 이미지 데이터 분석, Dataset·DataLoader, CNN Baseline 학습, Best Checkpoint 저장·복원, 독립 Test Dataset 평가까지 완료했습니다.
+
+---
+
+## 2. Current Implementation Status
+
+### Completed
+
+```text
+[완료] 제조 이미지 데이터 구조 분석
+
+[완료] 정상·불량 Class Mapping
+
+[완료] 이미지 파일 수 분석
+
+[완료] 이미지 크기·Channel 분석
+
+[완료] 손상 이미지 검증
+
+[완료] Train·Validation Stratified Split
+
+[완료] PyTorch Dataset
+
+[완료] Train·Validation·Test Transform
+
+[완료] PyTorch DataLoader
+
+[완료] Random Seed 고정
+
+[완료] CNN Baseline Architecture
+
+[완료] BCEWithLogitsLoss
+
+[완료] Adam Optimizer
+
+[완료] Train Epoch Runner
+
+[완료] Validation Epoch Runner
+
+[완료] Training Pipeline
+
+[완료] Validation Loss 기준 Best Checkpoint 저장
+
+[완료] Best Checkpoint Loader
+
+[완료] Binary Evaluation Runner
+
+[완료] Accuracy
+
+[완료] Precision
+
+[완료] Recall
+
+[완료] F1 Score
+
+[완료] Confusion Matrix
+
+[완료] 실제 CNN Baseline 학습
+
+[완료] 실제 Test Dataset 평가
+
+[완료] Sample별 Prediction JSON
+
+[완료] 전체 자동 테스트
+```
+
+### Planned
+
+```text
+[예정] ResNet18 Transfer Learning
+
+[예정] CNN Baseline·ResNet18 성능 비교
+
+[예정] 오분류 이미지 분석
+
+[예정] False Positive·False Negative 분석
+
+[예정] Grad-CAM
+
+[예정] FastAPI 추론 API
+
+[예정] Streamlit Dashboard
+
+[예정] 최종 포트폴리오 문서
+```
+
+현재 README에서는 아직 구현하지 않은 기능을 완료 기능으로 표시하지 않습니다.
+
+---
+
+## 3. Binary Classification Definition
+
+현재 이진 분류 기준은 다음과 같습니다.
+
+| Label | Class  | 의미        |
+| ----: | ------ | --------- |
+|     0 | NORMAL | 정상 제품 이미지 |
+|     1 | DEFECT | 불량 제품 이미지 |
+
+Class Mapping:
+
+```python
+CLASS_TO_INDEX = {
+    "ok_front": 0,
+    "def_front": 1,
+}
+```
+
+Positive Class:
+
+```text
+1 = DEFECT
+```
+
+Precision·Recall·F1 Score는 DEFECT를 Positive Class로 계산합니다.
+
+---
+
+## 4. Dataset
+
+사용 데이터:
+
+**Casting Product Image Data for Quality Inspection**
+
+실제 데이터 경로:
+
+```text
+data/
+└── raw/
+    └── casting_product_images/
+        └── casting_data/
+            └── casting_data/
+                ├── train/
+                │   ├── def_front/
+                │   └── ok_front/
+                └── test/
+                    ├── def_front/
+                    └── ok_front/
+```
+
+분석 대상:
+
+```text
+train/def_front
+
+train/ok_front
+
+test/def_front
+
+test/ok_front
+```
+
+현재 프로젝트에서는 별도의 `casting_512x512` 데이터를 사용하지 않습니다.
+
+동일하거나 유사한 이미지가 다른 경로에 중복될 가능성을 줄이고, 데이터 중복과 평가 누수 위험을 방지하기 위해 공식 Train·Test 구조만 사용합니다.
+
+---
+
+## 5. Dataset Summary
+
+전체 이미지:
+
+| Split          | NORMAL | DEFECT | Total |
+| -------------- | -----: | -----: | ----: |
+| Original Train |  2,875 |  3,758 | 6,633 |
+| Original Test  |    262 |    453 |   715 |
+| Total          |  3,137 |  4,211 | 7,348 |
+
+이미지 특성:
+
+| 항목          | 결과  |
+| ----------- | --- |
+| Width       | 300 |
+| Height      | 300 |
+| Channel     | RGB |
+| 손상 이미지      | 없음  |
+| 지원하지 않는 이미지 | 없음  |
+
+---
+
+## 6. Train·Validation·Test Split
+
+원본 Train Dataset을 Stratified 방식으로 Train·Validation으로 분할했습니다.
+
+설정:
+
+```text
+Validation Ratio
+
+0.2
+```
+
+```text
+Random Seed
+
+42
+```
+
+최종 구성:
+
+| Split      | NORMAL | DEFECT | Total |
+| ---------- | -----: | -----: | ----: |
+| Train      |  2,300 |  3,006 | 5,306 |
+| Validation |    575 |    752 | 1,327 |
+| Test       |    262 |    453 |   715 |
+| Total      |  3,137 |  4,211 | 7,348 |
+
+원본 Test Dataset은 Train·Validation 분할에 포함하지 않았습니다.
+
+Test Dataset은 Best Model을 선택한 이후 최종 일반화 성능 평가에만 사용합니다.
+
+---
+
+## 7. Image Preprocessing
+
+공식 Model 입력 크기:
+
+```text
+224 × 224
+```
+
+Channel:
+
+```text
+RGB
+
+3 Channels
+```
+
+ImageNet Normalization:
+
+```python
+IMAGENET_MEAN = (
+    0.485,
+    0.456,
+    0.406,
+)
+
+IMAGENET_STD = (
+    0.229,
+    0.224,
+    0.225,
+)
+```
+
+### Train Transform
+
+```text
+Resize
+
+↓
+
+Random Horizontal Flip
+
+↓
+
+Small Random Rotation
+
+↓
+
+Tensor 변환
+
+↓
+
+ImageNet Normalization
+```
+
+### Validation·Test Transform
+
+```text
+Resize
+
+↓
+
+Tensor 변환
+
+↓
+
+ImageNet Normalization
+```
+
+Validation·Test에는 Random Augmentation을 적용하지 않습니다.
+
+동일한 입력에 대해 평가 결과가 불필요하게 달라지지 않도록 결정적인 Transform을 사용합니다.
+
+---
+
+## 8. PyTorch Data Pipeline
+
+데이터 흐름:
+
+```text
+ImageSample
+
+↓
+
+CastingDefectDataset
+
+↓
+
+Image Transform
+
+↓
+
+PyTorch DataLoader
+
+↓
+
+Image Batch
+
+[B, 3, 224, 224]
+
++
+
+Label Batch
+
+[B]
+```
+
+현재 DataLoader 설정:
+
+| 항목                 |     값 |
+| ------------------ | ----: |
+| Batch Size         |    32 |
+| Num Workers        |     0 |
+| Pin Memory         | False |
+| Drop Last          | False |
+| Persistent Workers | False |
+| Random Seed        |    42 |
+
+현재 실행 환경은 Windows·CPU이므로 안정성과 재현성을 우선하여 `num_workers=0`을 사용합니다.
+
+---
+
+## 9. CNN Baseline
+
+CNN Baseline은 ResNet18 Transfer Learning과 비교하기 위한 직접 학습 Model입니다.
+
+Architecture:
+
+```text
+Input
+
+[B, 3, 224, 224]
+
+↓
+
+Conv2d
+
+3 → 8
+
+↓
+
+ReLU
+
+↓
+
+MaxPool2d
+
+224 → 112
+
+↓
+
+Conv2d
+
+8 → 16
+
+↓
+
+ReLU
+
+↓
+
+MaxPool2d
+
+112 → 56
+
+↓
+
+Conv2d
+
+16 → 32
+
+↓
+
+ReLU
+
+↓
+
+MaxPool2d
+
+56 → 28
+
+↓
+
+AdaptiveAvgPool2d
+
+[1, 1]
+
+↓
+
+Flatten
+
+[B, 32]
+
+↓
+
+Linear
+
+32 → 1
+
+↓
+
+Raw Logit
+
+[B]
+```
+
+Model Parameter:
+
+```text
+6,065
+```
+
+설계 특징:
+
+```text
+경량 CPU Baseline
+
+Adaptive Average Pooling
+
+작은 Parameter 수
+
+Raw Logit 출력
+
+Grad-CAM을 고려한 이름 있는 Convolution Layer
+```
+
+---
+
+## 10. Why Raw Logits?
+
+CNNBaseline 내부에는 Sigmoid를 넣지 않았습니다.
+
+Model Output:
+
+```text
+Raw Logit
+
+Shape:
+
+[B]
+```
+
+학습:
+
+```text
+Raw Logit
+
+↓
+
+BCEWithLogitsLoss
+```
+
+평가:
+
+```text
+Raw Logit
+
+↓
+
+Sigmoid
+
+↓
+
+DEFECT Probability
+
+↓
+
+Threshold
+
+↓
+
+Binary Prediction
+```
+
+`BCEWithLogitsLoss`는 Sigmoid와 Binary Cross Entropy를 하나의 수치적으로 안정적인 연산으로 처리합니다.
+
+현재 Threshold:
+
+```text
+0.5
+```
+
+Prediction:
+
+```python
+prediction = (
+    probability
+    >= 0.5
+)
+```
+
+---
+
+## 11. Loss Function
+
+사용 Loss:
+
+```text
+BCEWithLogitsLoss
+```
+
+Reduction:
+
+```text
+mean
+```
+
+현재 CNN Baseline에서는 Positive Class Weight를 사용하지 않습니다.
+
+```text
+USE_POSITIVE_CLASS_WEIGHT
+
+False
+```
+
+현재 Class 불균형이 존재하지만 극단적이지 않으며, 먼저 기본 Loss로 명확한 Baseline을 확보하는 것을 우선했습니다.
+
+---
+
+## 12. Optimizer
+
+사용 Optimizer:
+
+```text
+Adam
+```
+
+설정:
+
+| 항목            |     값 |
+| ------------- | ----: |
+| Learning Rate | 0.001 |
+| Weight Decay  |   0.0 |
+| Beta 1        |   0.9 |
+| Beta 2        | 0.999 |
+| Epsilon       |  1e-8 |
+
+Gradient 초기화:
+
+```python
+optimizer.zero_grad(
+    set_to_none=True
+)
+```
+
+현재 Baseline에는 다음 기능을 추가하지 않았습니다.
+
+```text
+Learning Rate Scheduler
+
+Early Stopping
+
+Gradient Clipping
+
+Mixed Precision
+
+Hyperparameter Search
+```
+
+---
+
+## 13. Training Pipeline
+
+Train 흐름:
+
+```text
+model.train()
+
+↓
+
+Image Batch
+
+↓
+
+Model Forward
+
+↓
+
+Raw Logit
+
+↓
+
+BCEWithLogitsLoss
+
+↓
+
+zero_grad
+
+↓
+
+Backward
+
+↓
+
+Optimizer Step
+
+↓
+
+Train Loss·Accuracy
+```
+
+Validation 흐름:
+
+```text
+model.eval()
+
+↓
+
+torch.inference_mode()
+
+↓
+
+Validation Forward
+
+↓
+
+Validation Loss·Accuracy
+```
+
+Average Loss는 Batch 평균을 다시 단순 평균하지 않습니다.
+
+```text
+Batch Mean Loss
+
+×
+
+Batch Sample Count
+
+↓
+
+전체 합
+
+÷
+
+전체 Sample Count
+```
+
+마지막 Batch 크기가 다를 수 있으므로 Sample 가중 평균을 사용합니다.
+
+---
+
+## 14. Best Model Selection
+
+실제 학습 설정:
+
+| 항목                       |               값 |
+| ------------------------ | --------------: |
+| Epoch                    |               5 |
+| Batch Size               |              32 |
+| Device                   |             CPU |
+| Random Seed              |              42 |
+| Classification Threshold |             0.5 |
+| Best Model Selection     | Validation Loss |
+
+Best Model 기준:
+
+```text
+Lowest Validation Loss
+```
+
+Validation Accuracy가 가장 높은 Epoch가 아니라 Validation Loss가 가장 낮은 Epoch를 저장합니다.
+
+---
+
+## 15. CNN Baseline Training Result
+
+실행:
+
+```powershell
+python -m scripts.run_day3_cnn_baseline_training
+```
+
+실제 학습 결과:
+
+| Epoch | Train Loss | Train Accuracy | Validation Loss | Validation Accuracy | Best |
+| ----: | ---------: | -------------: | --------------: | ------------------: | :--: |
+|     1 |   0.619515 |         64.68% |        0.476329 |              82.82% |  Yes |
+|     2 |   0.469879 |         79.16% |        0.465499 |              76.94% |  Yes |
+|     3 |   0.455239 |         80.21% |        0.492534 |              77.62% |  No  |
+|     4 |   0.441022 |         80.49% |        0.479610 |              78.52% |  No  |
+|     5 |   0.440413 |         80.63% |        0.509245 |              77.77% |  No  |
+
+Best Epoch:
+
+```text
+2
+```
+
+Best Validation Loss:
+
+```text
+0.465498844753
+```
+
+Best Validation Accuracy:
+
+```text
+76.94%
+```
+
+실제 학습 시간:
+
+```text
+646.16 Seconds
+
+약 10.77 Minutes
+```
+
+---
+
+## 16. Training Result Analysis
+
+Train Loss:
+
+```text
+Epoch 1
+
+0.619515
+
+↓
+
+Epoch 5
+
+0.440413
+```
+
+Train Accuracy:
+
+```text
+Epoch 1
+
+64.68%
+
+↓
+
+Epoch 5
+
+80.63%
+```
+
+Model은 실제 데이터 패턴을 학습했습니다.
+
+Epoch 2 이후에는 Train Loss가 계속 감소했지만 Validation Loss는 다시 증가했습니다.
+
+```text
+Train Loss
+
+계속 감소
+
++
+
+Validation Loss
+
+다시 증가
+```
+
+이는 일반화 성능 개선이 정체되고 경미한 Overfitting이 시작된 신호로 해석할 수 있습니다.
+
+Validation Loss 기준 Best Checkpoint를 저장하여 이후 Epoch의 Validation 성능 악화를 최종 Test 평가에 사용하지 않았습니다.
+
+---
+
+## 17. Best Checkpoint
+
+Checkpoint:
+
+```text
+models/
+└── checkpoints/
+    └── cnn_baseline_best.pt
+```
+
+현재 Best Checkpoint:
+
+```text
+Epoch
+
+2
+```
+
+Checkpoint Metadata:
+
+```text
+Checkpoint Version
+
+Model Name
+
+Model Module
+
+Loss Function Name
+
+Optimizer Name
+
+Best Epoch
+
+Configured Epoch Count
+
+Classification Threshold
+
+Best Model Selection Metric
+
+Model State
+
+Optimizer State
+
+Train Result
+
+Validation Result
+```
+
+Checkpoint Loader 검증:
+
+```text
+Checkpoint 존재
+
+.pt·.pth 확장자
+
+Checkpoint Version
+
+필수 Key
+
+Model 이름
+
+Model Module
+
+Epoch 범위
+
+Threshold 범위
+
+Selection Metric
+
+Model State Key
+
+Tensor Type
+
+Tensor Shape
+
+NaN·inf
+
+strict=True Weight Loading
+```
+
+---
+
+## 18. Test Evaluation Pipeline
+
+실제 평가 흐름:
+
+```text
+새 CNNBaseline 생성
+
+↓
+
+CPU 이동
+
+↓
+
+Best Epoch 2 Checkpoint 복원
+
+↓
+
+Test DataLoader
+
+↓
+
+model.eval()
+
+↓
+
+torch.inference_mode()
+
+↓
+
+Raw Logit
+
+↓
+
+Test Loss
+
+↓
+
+Sigmoid
+
+↓
+
+DEFECT Probability
+
+↓
+
+Threshold 0.5
+
+↓
+
+Prediction
+
+↓
+
+Accuracy
+
+Precision
+
+Recall
+
+F1 Score
+
+Confusion Matrix
+```
+
+Evaluation Runner는 Checkpoint를 직접 읽지 않습니다.
+
+역할:
+
+```text
+Checkpoint Loader
+
+→ Best Weight 복원
+```
+
+```text
+Evaluation Runner
+
+→ 전달받은 Model 평가
+```
+
+---
+
+## 19. CNN Baseline Test Result
+
+실행:
+
+```powershell
+python -m scripts.run_day3_cnn_baseline_evaluation
+```
+
+Test Dataset:
+
+| Class  | Count |
+| ------ | ----: |
+| NORMAL |   262 |
+| DEFECT |   453 |
+| Total  |   715 |
+
+실제 Test 결과:
+
+| Metric    |   Result |
+| --------- | -------: |
+| Test Loss | 0.453337 |
+| Accuracy  |   76.92% |
+| Precision |   82.88% |
+| Recall    |   80.13% |
+| F1 Score  |   81.48% |
+
+정확한 결과:
+
+```text
+Test Loss
+
+0.453337371391
+```
+
+```text
+Accuracy
+
+0.769230769231
+```
+
+```text
+Precision
+
+0.828767123288
+```
+
+```text
+Recall
+
+0.801324503311
+```
+
+```text
+F1 Score
+
+0.814814814815
+```
+
+평가 시간:
+
+```text
+8.97 Seconds
+```
+
+---
+
+## 20. Confusion Matrix
+
+Confusion Matrix:
+
+```text
+tensor(
+    [
+        [187, 75],
+        [90, 363],
+    ]
+)
+```
+
+Matrix 순서:
+
+```text
+[
+    [TN, FP],
+    [FN, TP],
+]
+```
+
+표:
+
+|               | Predicted NORMAL | Predicted DEFECT |
+| ------------- | ---------------: | ---------------: |
+| Actual NORMAL |              187 |               75 |
+| Actual DEFECT |               90 |              363 |
+
+Confusion Count:
+
+| 항목             | Count |
+| -------------- | ----: |
+| True Negative  |   187 |
+| False Positive |    75 |
+| False Negative |    90 |
+| True Positive  |   363 |
+| Correct        |   550 |
+| Incorrect      |   165 |
+
+---
+
+## 21. Metric Interpretation
+
+### Accuracy
+
+```text
+550
+
+÷
+
+715
+
+=
+
+76.92%
+```
+
+전체 Test 이미지 중 약 76.92%를 정확히 분류했습니다.
+
+---
+
+### Precision
+
+```text
+363
+
+÷
+
+438
+
+=
+
+82.88%
+```
+
+Model이 DEFECT라고 예측한 이미지 중 약 82.88%가 실제 DEFECT였습니다.
+
+False Positive:
+
+```text
+75
+```
+
+실제 NORMAL을 DEFECT로 잘못 분류한 경우입니다.
+
+---
+
+### Recall
+
+```text
+363
+
+÷
+
+453
+
+=
+
+80.13%
+```
+
+실제 DEFECT 중 약 80.13%를 탐지했습니다.
+
+False Negative:
+
+```text
+90
+```
+
+실제 DEFECT를 NORMAL로 잘못 분류한 경우입니다.
+
+제조 품질 검사에서는 실제 불량이 정상으로 통과할 수 있는 오류이므로 중요한 위험 지표입니다.
+
+False Negative Rate:
+
+```text
+90
+
+÷
+
+453
+
+=
+
+19.87%
+```
+
+---
+
+### F1 Score
+
+```text
+81.48%
+```
+
+Precision과 Recall의 균형을 나타냅니다.
+
+현재 Precision과 Recall이 한쪽으로 크게 치우치지 않았습니다.
+
+---
+
+## 22. Validation·Test Comparison
+
+| Metric   | Validation |     Test |
+| -------- | ---------: | -------: |
+| Loss     |   0.465499 | 0.453337 |
+| Accuracy |     76.94% |   76.92% |
+
+Accuracy 차이:
+
+```text
+약 0.02 Percentage Point
+```
+
+Validation과 Test Accuracy가 거의 같습니다.
+
+현재 결과에서는 다음을 확인할 수 있습니다.
+
+```text
+Validation 성능이 Test에서도 유지됨
+
+심한 Overfitting 징후 없음
+
+Best Epoch 선택 정상 동작
+
+안정적인 Test 일반화 성능
+```
+
+---
+
+## 23. Majority Class Baseline Comparison
+
+Test Dataset의 DEFECT 비율:
+
+```text
+453
+
+÷
+
+715
+
+=
+
+63.36%
+```
+
+모든 이미지를 DEFECT로 예측하는 단순 Majority Class Model:
+
+```text
+Accuracy
+
+63.36%
+```
+
+CNNBaseline:
+
+```text
+Accuracy
+
+76.92%
+```
+
+향상:
+
+```text
+약 13.57 Percentage Point
+```
+
+CNNBaseline은 단순히 다수 Class만 반복 예측하지 않았습니다.
+
+Prediction 분포:
+
+```text
+Predicted NORMAL
+
+277
+```
+
+```text
+Predicted DEFECT
+
+438
+```
+
+---
+
+## 24. Probability Summary
+
+DEFECT Probability:
+
+| 항목      |        값 |
+| ------- | -------: |
+| Minimum | 0.034242 |
+| Maximum | 0.978111 |
+| Mean    | 0.539900 |
+
+현재 Threshold:
+
+```text
+0.5
+```
+
+0에 가까운 NORMAL 예측과 1에 가까운 DEFECT 예측이 모두 존재합니다.
+
+Probability 평균만으로 Model Calibration 성능을 판단하지는 않습니다.
+
+---
+
+## 25. CNN Baseline Summary
+
+| 항목                       | CNNBaseline |
+| ------------------------ | ----------: |
+| Parameter                |       6,065 |
+| Epoch                    |           5 |
+| Best Epoch               |           2 |
+| Best Validation Loss     |    0.465499 |
+| Best Validation Accuracy |      76.94% |
+| Test Loss                |    0.453337 |
+| Test Accuracy            |      76.92% |
+| Test Precision           |      82.88% |
+| Test Recall              |      80.13% |
+| Test F1                  |      81.48% |
+| False Positive           |          75 |
+| False Negative           |          90 |
+
+현재 CNNBaseline은 이후 ResNet18 Transfer Learning과 비교할 성능 기준선입니다.
+
+ResNet18 비교에서는 다음 항목을 중점적으로 확인할 예정입니다.
+
+```text
+Accuracy 증가
+
+Recall 증가
+
+F1 증가
+
+False Negative 감소
+
+Validation·Test 일반화 유지
+
+Parameter·계산 비용 증가
+```
+
+---
+
+## 26. Generated Artifacts
+
+Dataset 분석 결과:
+
+```text
+reports/
+└── artifacts/
+```
+
+CNN Best Checkpoint:
+
+```text
+models/
+└── checkpoints/
+    └── cnn_baseline_best.pt
+```
+
+Training History:
+
+```text
+reports/
+└── artifacts/
+    └── day3_cnn_baseline_training_history.json
+```
+
+Test Evaluation:
+
+```text
+reports/
+└── artifacts/
+    └── day3_cnn_baseline_test_evaluation.json
+```
+
+Test Evaluation JSON에는 715개 이미지별 다음 정보를 저장합니다.
+
+```text
+Sample Index
+
+Image Path
+
+Ground Truth Label
+
+Ground Truth Class Name
+
+Raw Logit
+
+DEFECT Probability
+
+Prediction
+
+Prediction Class Name
+
+Correct 여부
+```
+
+향후 다음 분석에 재사용합니다.
+
+```text
+False Positive 이미지
+
+False Negative 이미지
+
+오분류 Confidence
+
+오분류 이미지 시각화
+
+Grad-CAM 대상 선택
+```
+
+---
+
+## 27. Project Structure
+
+```text
+manufacturing-vision-defect-analysis-system/
+│
+├── data/
+│   └── raw/
+│
+├── models/
+│   └── checkpoints/
+│       └── cnn_baseline_best.pt
+│
+├── reports/
+│   ├── artifacts/
+│   │   ├── day3_cnn_baseline_training_history.json
+│   │   └── day3_cnn_baseline_test_evaluation.json
+│   │
+│   └── day3_cnn_baseline_training_and_evaluation_summary.md
+│
+├── scripts/
+│   ├── run_day3_cnn_baseline_training.py
+│   └── run_day3_cnn_baseline_evaluation.py
+│
+├── src/
+│   ├── data/
+│   │   ├── data_loader.py
+│   │   ├── dataset_analysis.py
+│   │   ├── dataset_config.py
+│   │   ├── dataset_split.py
+│   │   ├── dataset_visualization.py
+│   │   ├── image_dataset.py
+│   │   └── image_transforms.py
+│   │
+│   ├── evaluation/
+│   │   ├── classification_metrics.py
+│   │   └── evaluation_runner.py
+│   │
+│   ├── models/
+│   │   └── cnn_baseline.py
+│   │
+│   ├── training/
+│   │   ├── checkpoint_loader.py
+│   │   ├── epoch_runner.py
+│   │   ├── loss_function.py
+│   │   ├── optimizer.py
+│   │   └── training_pipeline.py
+│   │
+│   └── reproducibility.py
+│
+├── tests/
+│   ├── test_checkpoint_loader.py
+│   ├── test_classification_metrics.py
+│   ├── test_cnn_baseline.py
+│   ├── test_evaluation_runner.py
+│   ├── test_run_day3_cnn_baseline_evaluation.py
+│   ├── test_training_pipeline.py
+│   └── ...
+│
+├── README.md
+├── requirements.txt
+└── pytest.ini
+```
+
+---
+
+## 28. Environment
+
+실제 개발·검증 환경:
+
+| 항목          | 값          |
+| ----------- | ---------- |
+| OS          | Windows    |
+| Python      | 3.11.9     |
+| PyTorch     | 2.12.0+cpu |
+| Torchvision | 0.27.0+cpu |
+| CUDA        | False      |
+| Device      | CPU        |
+
+현재 실제 실행 장치:
+
+```text
+Intel Core i5-1035G7
+
+CPU
+```
+
+---
+
+## 29. Installation
+
+가상 환경 생성:
+
+```powershell
+python -m venv .venv
+```
+
+가상 환경 활성화:
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
+
+Dependency 설치:
+
+```powershell
+python -m pip install `
+    -r .\requirements.txt
+```
+
+Dependency 검증:
+
+```powershell
+python -m pip check
+```
+
+---
+
+## 30. Run CNN Baseline Training
+
+실제 학습:
+
+```powershell
+python -m scripts.run_day3_cnn_baseline_training
+```
+
+구성만 검증:
+
+```powershell
+python -m scripts.run_day3_cnn_baseline_training `
+    --validate-only
+```
+
+생성 파일:
+
+```text
+models/checkpoints/
+cnn_baseline_best.pt
+```
+
+```text
+reports/artifacts/
+day3_cnn_baseline_training_history.json
+```
+
+---
+
+## 31. Run CNN Baseline Test Evaluation
+
+구성 검증:
+
+```powershell
+python -m scripts.run_day3_cnn_baseline_evaluation `
+    --validate-only
+```
+
+실제 Test 평가:
+
+```powershell
+python -m scripts.run_day3_cnn_baseline_evaluation
+```
+
+생성 파일:
+
+```text
+reports/artifacts/
+day3_cnn_baseline_test_evaluation.json
+```
+
+---
+
+## 32. Run Tests
+
+전체 테스트:
+
+```powershell
+python -m pytest `
+    .\tests `
+    -v
+```
+
+현재 실제 결과:
+
+```text
+1110 passed
+```
+
+`1110 passed`는 Parameterized Test의 각 입력 Case가 개별 Test Case로 집계된 결과입니다.
+
+검증 범위:
+
+```text
+Dataset Configuration
+
+Dataset Analysis
+
+Dataset Visualization
+
+Train·Validation Split
+
+PyTorch Dataset
+
+Image Transform
+
+DataLoader
+
+Random Seed
+
+CNNBaseline
+
+Loss Function
+
+Optimizer
+
+Train Epoch
+
+Validation Epoch
+
+Training Pipeline
+
+Best Checkpoint
+
+Checkpoint Loader
+
+Evaluation Runner
+
+Classification Metrics
+
+Training Script
+
+Evaluation Script
+```
+
+오류 방어:
+
+```text
+잘못된 Type
+
+잘못된 Shape
+
+잘못된 Dtype
+
+빈 Tensor
+
+잘못된 Label
+
+NaN
+
+Positive Infinity
+
+Negative Infinity
+
+Device 불일치
+
+Checkpoint 손상
+
+Checkpoint Key 누락
+
+Checkpoint Version 불일치
+
+Model State 불일치
+
+Metric 내부 불일치
+
+Confusion Matrix 불일치
+
+빈 DataLoader
+
+잘못된 JSON Artifact
+```
+
+---
+
+## 33. Design Principles
+
+### Evidence-based Evaluation
+
+Accuracy만 사용하지 않습니다.
+
+```text
+Accuracy
+
+Precision
+
+Recall
+
+F1 Score
+
+Confusion Matrix
+
+False Positive
+
+False Negative
+```
+
+를 함께 확인합니다.
+
+---
+
+### Validation before Test
+
+```text
+Train
+
+→ Model 학습
+```
+
+```text
+Validation
+
+→ Best Model 선택
+```
+
+```text
+Test
+
+→ 최종 일반화 성능 평가
+```
+
+Test 결과를 보고 Best Epoch를 다시 선택하지 않습니다.
+
+---
+
+### Separation of Responsibilities
+
+```text
+CNN Model
+
+→ Raw Logit
+```
+
+```text
+Loss Module
+
+→ Training Loss
+```
+
+```text
+Epoch Runner
+
+→ Train·Validation 실행
+```
+
+```text
+Training Pipeline
+
+→ Epoch 관리·Best Model 저장
+```
+
+```text
+Checkpoint Loader
+
+→ Best Weight 복원
+```
+
+```text
+Evaluation Runner
+
+→ Test Forward·Prediction 수집
+```
+
+```text
+Classification Metrics
+
+→ Accuracy·Precision·Recall·F1
+```
+
+각 기능을 분리하여 테스트와 재사용이 쉽도록 구성했습니다.
+
+---
+
+### Reproducibility
+
+```text
+Random Seed
+
+42
+```
+
+Dataset Split·DataLoader·Model 실행에서 재현 가능한 기준을 유지합니다.
+
+---
+
+## 34. Current Limitations
+
+현재 CNNBaseline의 한계:
+
+```text
+작은 Feature Channel
+
+3개 Convolution Block
+
+Pretrained Feature 없음
+
+복잡한 결함 Texture 표현 한계
+
+False Positive 75장
+
+False Negative 90장
+```
+
+현재 수행하지 않은 최적화:
+
+```text
+Threshold Search
+
+Class Weight
+
+Focal Loss
+
+Learning Rate Scheduler
+
+Early Stopping
+
+Large Hyperparameter Search
+```
+
+먼저 ResNet18 Transfer Learning 결과와 비교한 뒤 추가 최적화 필요성을 판단할 예정입니다.
+
+---
+
+## 35. Next Step
+
+다음 단계:
+
+```text
+ResNet18 Transfer Learning
+```
+
+예정 흐름:
+
+```text
+Pretrained ResNet18
+
+↓
+
+Final Fully Connected Layer 교체
+
+↓
+
+Binary Raw Logit
+
+↓
+
+Transfer Learning
+
+↓
+
+Validation Loss 기준 Best Checkpoint
+
+↓
+
+Test Evaluation
+
+↓
+
+CNNBaseline과 성능 비교
+```
+
+비교 기준:
+
+```text
+Accuracy
+
+Precision
+
+Recall
+
+F1 Score
+
+False Positive
+
+False Negative
+
+Parameter Count
+
+Training Time
+```
+
+---
+
+## 36. Portfolio Summary
+
+문제:
+
+제조 이미지의 정상·불량 판정을 자동화하고, Accuracy뿐 아니라 불량 미탐 위험까지 확인할 수 있는 Vision 분류 Pipeline이 필요했습니다.
+
+해결:
+
+PyTorch 기반 Dataset·DataLoader를 구성하고, 6,065 Parameter의 CNNBaseline을 직접 구현했습니다.
+
+`BCEWithLogitsLoss`와 Adam Optimizer를 사용해 실제 CPU 환경에서 학습했으며, Validation Loss 기준 Best Checkpoint를 저장·복원했습니다.
+
+독립 Test Dataset 715장에서 Accuracy·Precision·Recall·F1·Confusion Matrix를 계산하고 715개 Sample별 Prediction 결과를 JSON으로 저장했습니다.
+
+결과:
+
+```text
+Test Accuracy
+
+76.92%
+```
+
+```text
+Test Precision
+
+82.88%
+```
+
+```text
+Test Recall
+
+80.13%
+```
+
+```text
+Test F1 Score
+
+81.48%
+```
+
+```text
+전체 자동 테스트
+
+1110 passed
+```
+
+현재 결과는 이후 ResNet18 Transfer Learning 성능을 비교하기 위한 검증된 Baseline으로 사용합니다.
+
+---
+
+## 37. AI Tool Usage
+
+AI 도구는 코드 초안과 테스트 항목 설계에 활용했습니다.
+
+다음 항목은 직접 실행·검증했습니다.
+
+```text
+Dataset 구조
+
+Class Mapping
+
+Tensor Shape
+
+Transform
+
+DataLoader
+
+CNN Architecture
+
+Loss 입력·출력
+
+Optimizer 설정
+
+Train·Validation 흐름
+
+Best Checkpoint 정책
+
+Checkpoint Metadata
+
+Test Evaluation
+
+Metric 공식
+
+Confusion Matrix 순서
+
+False Positive·False Negative 의미
+
+실제 CPU 학습
+
+실제 Test 평가
+
+전체 자동 테스트
+```
+
+AI가 생성한 코드를 그대로 제출하는 것이 아니라, 각 파일·Class·함수의 역할과 입력·출력·설계 이유를 확인하고 실제 실행 결과를 기준으로 수정·검증·문서화했습니다.
+
+<!-- DAY4_RESNET18_START -->
+
+## Day 4 — ResNet18 Transfer Learning
+
+Day 3의 CNNBaseline과 동일한 Dataset·Transform·Loss·Threshold·평가 기준을 사용하여
+ImageNet 사전학습 ResNet18 기반 전이학습 모델을 구현했다.
+
+### Architecture
+
+```text
+Input [B, 3, 224, 224]
+→ torchvision ResNet18
+→ Frozen Backbone
+→ Linear(512, 1)
+→ Raw Logit [B]
+```
+
+```text
+Pretrained Weight       : ResNet18_Weights.DEFAULT
+Backbone                : Frozen
+BatchNorm               : Frozen Backbone Evaluation Mode
+Classification Head     : Linear(512, 1)
+Total Parameters        : 11,177,025
+Trainable Parameters    : 513
+Frozen Parameters       : 11,176,512
+Grad-CAM Target Layer   : resnet18.layer4.1.conv2
+```
+
+### Training Result
+
+```text
+Epoch                    : 5
+Best Epoch               : 5
+Best Validation Loss     : 0.157920
+Best Validation Accuracy : 97.06%
+Training Time            : 44.05 minutes
+```
+
+### Test Result
+
+| Metric | CNNBaseline | ResNet18 | Improvement |
+|---|---:|---:|---:|
+| Accuracy | 76.92% | **97.34%** | **+20.42%p** |
+| Precision | 82.88% | **97.17%** | **+14.29%p** |
+| Recall | 80.13% | **98.68%** | **+18.54%p** |
+| F1 Score | 81.48% | **97.92%** | **+16.44%p** |
+
+ResNet18 Confusion Matrix:
+
+```text
+[
+    [249, 13],
+    [6, 447],
+]
+```
+
+```text
+TN = 249
+FP = 13
+FN = 6
+TP = 447
+```
+
+CNNBaseline과 비교하면 False Negative는 `90 → 6`으로 84장 감소했고,
+전체 오분류는 `165 → 19`로 146장 감소했다.
+
+### Artifacts
+
+```text
+models/checkpoints/resnet18_transfer_best.pt
+reports/artifacts/day4_resnet18_training_history.json
+reports/artifacts/day4_resnet18_test_evaluation.json
+reports/artifacts/day4_cnn_resnet18_comparison.json
+reports/day4_resnet18_transfer_learning_training_and_evaluation_summary.md
+```
+
+### Tests
+
+```text
+1141 passed
+```
+
+현재 비교 결과에 따라 이후 추론·오분류 분석·Grad-CAM 단계에서는
+ResNet18 Best Checkpoint를 기본 주 모델로 우선 사용한다.
+
+<!-- DAY4_RESNET18_END -->
+
+<!-- DAY5_MISCLASSIFICATION_START -->
+## Day 5 — ResNet18 Misclassified Image Analysis
+
+Day 4 ResNet18 Test 평가의 오분류 19장을 분석하고 시각화했다.
+
+| 항목 | 결과 |
+| --- | ---: |
+| Test Samples | 715 |
+| Correct | 696 |
+| Misclassified | 19 |
+| False Positive | 13 |
+| False Negative | 6 |
+| Error Rate | 2.66% |
+
+분석 기준:
+
+```text
+0 = NORMAL
+1 = DEFECT
+Positive Class = DEFECT
+Classification Threshold = 0.5
+```
+
+```python
+threshold_distance = abs(
+    defect_probability - 0.5
+)
+```
+
+가장 확신한 오분류:
+
+```text
+Sample Index = 202
+File = cast_ok_0_7839.jpeg
+Ground Truth = NORMAL
+Prediction = DEFECT
+P(DEFECT) = 0.828241
+```
+
+가장 확신한 False Negative:
+
+```text
+Sample Index = 342
+File = cast_def_0_150.jpeg
+Ground Truth = DEFECT
+Prediction = NORMAL
+P(DEFECT) = 0.256505
+Wrong Prediction Confidence = 0.743495
+```
+
+생성 Artifact:
+
+```text
+reports/artifacts/day5_resnet18_misclassification_analysis.json
+reports/figures/day5_resnet18_false_positives.png
+reports/figures/day5_resnet18_false_negatives.png
+reports/figures/day5_resnet18_all_misclassifications.png
+```
+
+검증 결과:
+
+```text
+Day 5 Tests = 23 passed
+Full Regression Tests = 1164 passed
+```
+
+상세 보고서:
+
+```text
+reports/day5_misclassified_image_analysis_and_visualization_summary.md
+```
+<!-- DAY5_MISCLASSIFICATION_END -->
+
+<!-- DAY6_GRADCAM_START -->
+## Day 6 — ResNet18 Grad-CAM Explainability
+
+ResNet18이 특정 이미지를 `NORMAL` 또는 `DEFECT`로 판단할 때 마지막
+Convolution Layer에서 상대적으로 주목한 영역을 확인하기 위해 PyTorch
+Hook 기반 Grad-CAM을 직접 구현했다.
+
+### 핵심 설계
+
+```text
+Target Layer  : resnet18.layer4.1.conv2
+Target Policy : Predicted Class
+DEFECT Score  : raw_logit
+NORMAL Score  : -raw_logit
+Batch Size    : 1
+Input         : 224 × 224, ImageNet Normalize
+Output        : Original / Heatmap / Overlay
+```
+
+Day 4 평가 JSON과 Day 5 오분류 JSON을 교차 검증한 뒤 다음 대표 표본
+7장을 자동 선택했다.
+
+```text
+고확신 True Negative 1장
+고확신 True Positive 1장
+고확신 False Positive 2장
+고확신 False Negative 1장
+결정 경계 False Positive 1장
+결정 경계 False Negative 1장
+```
+
+실제 실행 결과:
+
+```text
+Generated Samples      : 7
+Runtime                 : 4.81 seconds
+Day 6 Tests             : 40 passed
+Full Regression Tests   : 1255 passed
+PNG Visual Check        : 이상 없음
+```
+
+Artifact:
+
+```text
+reports/artifacts/day6_resnet18_gradcam_analysis.json
+reports/figures/day6_resnet18_gradcam_overview.png
+reports/figures/day6_resnet18_gradcam_high_confidence_errors.png
+reports/figures/day6_resnet18_gradcam_boundary_errors.png
+reports/day6_resnet18_gradcam_explainability_summary.md
+```
+
+> Grad-CAM Heatmap은 모델이 예측에 상대적으로 사용한 영역을 보여주는 설명
+> 보조 수단이다. 실제 결함 위치의 정답 Mask나 Detection 결과로 해석하지 않는다.
+
+<!-- DAY6_GRADCAM_END -->
+
+---
+
+<!-- DAY7_FASTAPI_INFERENCE_START -->
+## Day 7 — FastAPI Image Inference API
+
+ResNet18 Best Checkpoint를 FastAPI Lifespan에서 한 번만 로딩하고,
+업로드한 제조 이미지를 `NORMAL` 또는 `DEFECT`로 분류하는 HTTP 추론 API를
+구현했습니다.
+
+### Endpoint
+
+```text
+GET  /api/v1/health
+POST /api/v1/predictions
+GET  /docs
+GET  /redoc
+```
+
+### Inference Flow
+
+```text
+UploadFile
+→ 제한 크기 읽기
+→ 확장자·Content-Type·실제 Decode 형식 검증
+→ RGB 변환
+→ Day 2 Test Transform
+→ ResNet18 Raw Logit
+→ Sigmoid
+→ Threshold 0.5
+→ NORMAL / DEFECT JSON
+```
+
+모델은 요청마다 다시 로딩하지 않습니다.
+FastAPI Lifespan에서 `resnet18_transfer_best.pt`를 한 번 복원하고
+`app.state.inference_service`에 저장합니다.
+
+### Validation Policy
+
+```text
+Supported: JPEG, JPG, PNG
+Maximum Upload Size: 10 MB
+Maximum Pixel Count: 25,000,000
+Positive Class: DEFECT
+Classification Threshold: 0.5
+```
+
+### Real HTTP Validation
+
+```text
+Health Model Loaded : true
+Model               : ResNet18Transfer
+Device              : cpu
+
+NORMAL Image        : cast_ok_0_7631.jpeg
+NORMAL Prediction   : NORMAL
+NORMAL P(DEFECT)    : 0.013476800174
+
+DEFECT Image        : cast_def_0_1414.jpeg
+DEFECT Prediction   : DEFECT
+DEFECT P(DEFECT)    : 0.999903678894
+```
+
+Artifact:
+
+```text
+reports/artifacts/day7_fastapi_inference_validation.json
+```
+
+Report:
+
+```text
+reports/day7_fastapi_image_inference_api_summary.md
+```
+
+Tests:
+
+```text
+Day 7 API Tests      : 40 passed
+Full Regression Tests: 1255 passed
+```
+
+현재 Prediction Endpoint는 빠른 일반 추론만 담당합니다.
+Grad-CAM은 Gradient·Hook·Backward가 필요한 별도 책임이므로 향후 Explain
+Endpoint로 분리할 수 있습니다.
+<!-- DAY7_FASTAPI_INFERENCE_END -->
+
+---
+
+<!-- DAY8_STREAMLIT_DASHBOARD_START -->
+## Day 8 — Streamlit Image Inference Dashboard
+
+Day 7 FastAPI를 추론 Backend로 유지하고, Streamlit은 이미지 업로드·Preview·
+HTTP 요청·결과 표시를 담당하는 단일 페이지 Dashboard로 구현했습니다.
+
+### Architecture
+
+```text
+Browser
+→ Streamlit Dashboard
+→ DashboardApiClient
+→ FastAPI /api/v1/predictions
+→ ResNet18Transfer
+→ JSON Response
+→ Session State
+→ Prediction Card
+```
+
+Streamlit에서는 Checkpoint를 직접 로딩하지 않으며 확률도 다시 계산하지 않습니다.
+FastAPI가 반환한 Prediction, 확률, Raw Logit과 Metadata를 검증한 뒤 표시합니다.
+
+### Dashboard Features
+
+```text
+Image Upload and Preview
+FastAPI Health and Model Loaded Status
+NORMAL / DEFECT Prediction Card
+P(DEFECT) and P(NORMAL)
+Raw Logit and Inference Time
+Model and Image Metadata
+Session State
+Safe API Error Messages
+```
+
+### Real Validation
+
+```text
+Health Model Loaded : True
+Model               : ResNet18Transfer
+Device              : cpu
+
+NORMAL Image        : cast_ok_0_7631.jpeg
+NORMAL Prediction   : NORMAL
+NORMAL P(DEFECT)    : 0.013476800174
+
+DEFECT Image        : cast_def_0_1414.jpeg
+DEFECT Prediction   : DEFECT
+DEFECT P(DEFECT)    : 0.999903678894
+
+UI Visual Validation: PASS
+```
+
+Screenshots:
+
+```text
+reports/figures/day8_streamlit_dashboard_normal.png
+reports/figures/day8_streamlit_dashboard_defect.png
+```
+
+![Day 8 NORMAL Dashboard](reports/figures/day8_streamlit_dashboard_normal.png)
+
+![Day 8 DEFECT Dashboard](reports/figures/day8_streamlit_dashboard_defect.png)
+
+Artifact and Report:
+
+```text
+reports/artifacts/day8_streamlit_dashboard_validation.json
+reports/day8_streamlit_image_inference_dashboard_summary.md
+```
+
+Tests:
+
+```text
+Initial Day 8 Dashboard Tests: 45 passed
+Full Regression Tests        : 1315 passed
+Warnings                     : 1
+```
+
+Grad-CAM은 Day 6에서 수행한 별도 설명 가능성 분석입니다. Day 8 기본 Dashboard는
+빠른 Prediction 결과를 우선 제공하며, 실제 생산 공정의 최종 품질 판정을
+대체하지 않습니다.
+<!-- DAY8_STREAMLIT_DASHBOARD_END -->
+
+<!-- DAY9_OBJECT_DETECTION_DATASET_START -->
+## Day 9 — Object Detection Dataset Analysis
+
+기존 Casting 분류 데이터는 이미지 전체의 정상·불량 Label만 제공하므로, 결함 종류와 위치를 학습할 수 있는 **NEU-DET 객체 탐지 데이터셋**을 별도 `src/detection` 계층으로 추가했습니다.
+
+```text
+Classification: 이미지 → NORMAL / DEFECT
+Detection:      이미지 → 결함 Class + Bounding Box + Confidence
+```
+
+### 실제 분석 결과
+
+| 항목 | 결과 |
+|---|---:|
+| 이미지 | 1,800 |
+| XML Annotation | 1,800 |
+| 유효 Record | 1,800 |
+| Bounding Box | 4,189 |
+| Class | 6 |
+| 손상 이미지 | 0 |
+| 잘못된 Box | 0 |
+| 최종 Error | 0 |
+
+원본에서 `crazing_240` 이미지와 XML이 서로 다른 Partition에 배치된 문제와 동일 Hash 이미지 1개 그룹을 발견했습니다. 원본은 수정하지 않고 Manifest 수준에서 유일 Pair를 연결했으며, 동일 Hash 그룹을 하나의 최종 Split 안에 유지해 평가 누수를 방지했습니다.
+
+| Split | 이미지 | Box | 중복 Hash 그룹 |
+|---|---:|---:|---:|
+| Train | 1440 | 3335 | 1 |
+| Validation | 178 | 425 | 0 |
+| Test | 182 | 429 | 0 |
+
+- Split 경로 중복: `0`
+- Split 간 동일 Hash 누수: `0`
+- 전체 Record 보존: `True`
+- 좌표 정책: `pascal_voc_one_based_inclusive_likely`
+- 전체 회귀 테스트: `1,368 passed, 1 warning`
+
+자세한 결과는 `reports/day9_object_detection_dataset_analysis_summary.md`와 Day 9 Artifact·Figure에서 확인할 수 있습니다.
+<!-- DAY9_OBJECT_DETECTION_DATASET_END -->
+
+<!-- DAY10_OPENCV_IMAGE_ANALYSIS_START -->
+## Day 10 — OpenCV Image Analysis Pipeline
+
+OpenCV 기반으로 이미지의 명암·경계·Threshold·형태 특성을 계산하는 독립 보조 분석 파이프라인을 구현했습니다.
+
+```text
+Pipeline:
+Original → Grayscale → Histogram → CLAHE → Gaussian Blur
+→ Canny Edge → Adaptive Threshold → Morphology
+→ Contour Candidate Overlay
+```
+
+- 실제 분석 샘플: Casting NORMAL, Casting DEFECT, NEU-DET Defect Image
+- 결과 분리: JSON 직렬화 가능한 Metrics / PNG 표시용 이미지
+- Figure: Pipeline Overview, Histogram·Metrics, Contour Candidate Analysis
+- Day 10 대상 테스트: **62 passed**
+- 전체 회귀 테스트: **1440 passed, 1 warning**
+- 보고서: `reports/day10_opencv_image_analysis_pipeline_summary.md`
+
+> OpenCV Contour는 Threshold·Morphology 기반 후보 형태이며 실제 결함 Ground Truth나 객체 탐지 Bounding Box가 아닙니다.
+<!-- DAY10_OPENCV_IMAGE_ANALYSIS_END -->
+
+<!-- DAY11_DETECTION_DATASET_MODEL_START -->
+## Day 11 — Detection Dataset and Model Implementation
+
+NEU-DET Pascal VOC Annotation을 Torchvision Detection Dataset으로 구현하고, CPU에서 Weight 다운로드 없이 Faster R-CNN의 Training·Evaluation Forward 계약을 검증했다.
+
+```text
+Dataset             : 1,800 images / 4,189 boxes
+Split               : Train 1,440 / Validation 178 / Test 182
+Coordinate policy   : (xmin - 1, ymin - 1, xmax, ymax)
+Duplicate policy    : preserve (3 exact duplicates)
+Class mapping       : BACKGROUND 0 + defect classes 1~6
+Architecture        : fasterrcnn_mobilenet_v3_large_320_fpn
+Predictor classes   : 7
+Pretrained download : False
+Training loss total : 3.852600
+Forward time        : train 0.255s / eval 0.069s
+Smoke predictions   : 10 boxes
+Validation          : PASS
+```
+
+Day 11 Prediction은 Random Initialization 기반 구조 검증 결과이며 학습 성능이 아니다. COCO pretrained Fine-tuning과 Detection 평가는 Day 12에서 진행한다.
+
+- Report: `reports/day11_detection_dataset_and_model_implementation_summary.md`
+- Dataset Artifact: `reports/artifacts/day11_detection_dataset_validation.json`
+- Model Artifact: `reports/artifacts/day11_detection_model_smoke_test.json`
+- Figures: `reports/figures/day11_detection_*.png`
+- Tests: Day 11 52 passed / Full regression 1492 passed / 1 warning(s)
+<!-- DAY11_DETECTION_DATASET_MODEL_END -->
+
+<!-- DAY12_DETECTION_TRAINING_EVALUATION_START -->
+## Day 12 — Detection Training, Evaluation and Failure Analysis
+
+COCO pretrained Faster R-CNN MobileNetV3 Large 320 FPN을 NEU-DET Background 포함 7-Class Head로 교체하고 CPU에서 3 Epoch Fine-tuning했다. Epoch 1은 Backbone Freeze, Epoch 2~3은 낮은 Learning Rate로 Unfreeze했으며 Best Checkpoint는 Validation mAP@0.50만으로 선택했다.
+
+```text
+Best epoch               : 3
+Validation mAP@0.50      : 0.677418
+Test Precision           : 0.812950
+Test Recall              : 0.526807
+Test F1                  : 0.639321
+Test Mean Matched IoU    : 0.752338
+Test mAP@0.50            : 0.707726
+Project mAP@0.50:0.95    : 0.310533
+Failure events           : 229
+Test used for selection  : False
+```
+
+- Best model: `models/detection/day12_detection_best.pt`
+- Report: `reports/day12_detection_training_evaluation_and_failure_analysis_summary.md`
+- Evaluation: `reports/artifacts/day12_detection_evaluation.json`
+- Failure analysis: `reports/artifacts/day12_detection_failure_analysis.json`
+- Figures: `reports/figures/day12_detection_*.png`
+- Tests: Day 12 84 passed / Full regression 1576 passed / 1 warning(s)
+
+Test 결과는 Checkpoint 선택이나 추가 학습 결정에 사용하지 않았다. Detection API·Streamlit 통합은 Day 13 범위다.
+<!-- DAY12_DETECTION_TRAINING_EVALUATION_END -->
+
+<!-- DAY13_DETECTION_FASTAPI_STREAMLIT_START -->
+## Day 13 — Detection FastAPI and Streamlit Integration
+
+Day 12의 Faster R-CNN Best Checkpoint를 기존 Classification과 독립된
+Detection Endpoint와 Streamlit Multipage 화면으로 연결했다.
+
+```text
+POST /api/v1/detection/predictions
+```
+
+핵심 구현:
+
+```text
+FastAPI Lifespan에서 Detection 모델 1회 로딩
+CPU map_location·eval()·torch.inference_mode()
+Process 내부 Forward Lock
+Score Threshold 0.05~0.95, 기본값 0.5
+원본 이미지 좌표 Bounding Box 반환
+Class ID·Class Name·Score·Inference Time
+Detection API Client
+Prediction Overlay·Table
+빈 Detection·Timeout·4xx·5xx·잘못된 JSON 처리
+```
+
+검증 결과:
+
+```text
+- Checkpoint Epoch: 3
+- Best Validation mAP@0.50: 0.677418
+- Actual Detection API Smoke Test: PASS
+- Dashboard API Client·Overlay Validation: PASS
+- Streamlit Direct Model Loading: 없음
+- Browser Visual Check: not recorded separately
+- Day 13 Tests: 92 passed
+- Full Regression: 1668 passed
+- Warnings: 1
+```
+
+OpenCV의 Threshold·Morphology 기반 Contour 후보는 Detection Prediction이나
+Ground Truth가 아니다. Detection 0개도 정상 판정이 아니라 현재 Threshold 이상
+Prediction이 없다는 의미다.
+
+상세 보고서:
+
+```text
+reports/day13_detection_fastapi_streamlit_integration_summary.md
+```
+
+Day 14의 최종 README·Architecture·Portfolio·Interview 정리는 아직 수행하지 않았다.
+<!-- DAY13_DETECTION_FASTAPI_STREAMLIT_END -->
+
+<!-- DAY14_FINAL_INTEGRATION_START -->
+
+## Day 14 — Final Integration, README, Portfolio, and Interview
+
+**Manufacturing Vision Defect Analysis System**은 Day 1~13에서 구현한 **Classification·OpenCV·Object Detection·FastAPI·Streamlit**을 하나의 제조 비전 결함 분석 시스템으로 정리한 프로젝트입니다.
+
+### Final System Scope
+
+- **Classification**: Casting Product Image를 `NORMAL / DEFECT`로 분류
+- **OpenCV**: 명암·Histogram·Edge·Threshold·Morphology 기반 보조 분석
+- **Detection**: NEU-DET 6개 결함 Class의 위치·Score·Bounding Box 예측
+- **FastAPI**: Classification과 Detection 추론 Endpoint 통합
+- **Streamlit**: API Client 방식의 Classification·Detection Dashboard
+- **Documentation**: Architecture·실행 방법·성능·Failure Analysis·Portfolio·면접 정리
+
+### Architecture
+
+```mermaid
+flowchart LR
+    U[사용자 / Browser]
+
+    subgraph Dashboard["Streamlit Dashboard"]
+        CP[Classification Page]
+        DP[Detection Page]
+    end
+
+    subgraph API["FastAPI Inference Layer"]
+        H[GET /api/v1/health]
+        CAPI[POST /api/v1/predictions]
+        DAPI[POST /api/v1/detection/predictions]
+        V[Image Validation]
+        LIFE[Lifespan Model Loading]
+        LOCK[Inference Lock]
+    end
+
+    subgraph Classification["Classification"]
+        CTRANS[Test Transform]
+        CM[ResNet18 Transfer]
+        COUT[NORMAL / DEFECT]
+    end
+
+    subgraph Detection["Object Detection"]
+        DTRANS[Tensor Conversion]
+        DM[Faster R-CNN MobileNetV3 320 FPN]
+        DOUT[Class / Score / Bounding Box]
+    end
+
+    subgraph OpenCV["OpenCV Auxiliary Analysis"]
+        OP[Brightness / Histogram / Edge]
+        OM[Threshold / Morphology]
+        OC[Contour Candidates]
+    end
+
+    U --> CP
+    U --> DP
+    CP --> CAPI
+    DP --> DAPI
+    CAPI --> V
+    DAPI --> V
+    LIFE --> CM
+    LIFE --> DM
+    V --> LOCK
+    LOCK --> CTRANS --> CM --> COUT
+    LOCK --> DTRANS --> DM --> DOUT
+    U --> OP --> OM --> OC
+
+    COUT --> CP
+    DOUT --> DP
+
+    CCHK[ResNet18 Best Checkpoint] --> CM
+    DCHK[Detection Best Checkpoint] --> DM
+
+    NOTE["OpenCV Contour는 Ground Truth나 Detection Prediction이 아닌 후보 영역"]
+    OC -. 역할 구분 .-> NOTE
+```
+
+### Final Performance
+
+| Pipeline | Model / Method | Test Result |
+|---|---|---|
+| Classification | ResNet18 Transfer | Accuracy 97.34%, Precision 97.17%, Recall 98.68%, F1 97.92% |
+| Classification Confusion Matrix | Binary NORMAL/DEFECT | TN 249, FP 13, FN 6, TP 447 |
+| Detection | Faster R-CNN MobileNetV3 Large 320 FPN | Precision 0.812950, Recall 0.526807, F1 0.639321 |
+| Detection Localization | IoU 0.50 Evaluation | Mean matched IoU 0.752338, mAP@0.50 0.707726 |
+| Detection Project AP | Project all-point interpolation | AP 0.50:0.95 0.310533 |
+| Detection Best Class | patches | F1 0.841026, AP@0.50 0.888495 |
+| Detection Weak Class | crazing | Recall 0.025316, F1 0.048780, AP@0.50 0.522723 |
+
+> Detection의 `AP 0.50:0.95`는 이 프로젝트가 구현한 all-point interpolation 기반 지표이며 공식 COCOeval 결과로 표현하지 않습니다.
+
+### API
+
+| Method | Endpoint | Role |
+|---|---|---|
+| GET | `/api/v1/health` | Classification·Detection Service 상태 |
+| POST | `/api/v1/predictions` | NORMAL / DEFECT Classification |
+| POST | `/api/v1/detection/predictions` | 결함 Class·Score·Bounding Box Detection |
+
+### Validation
+
+- Day 14 대상 테스트: **69 passed**
+- 전체 회귀 테스트: **1737 passed**
+- Warning: **1**
+- 전체 회귀 Runtime: **100.56 seconds**
+- Day 14 구조·문서 사전 점검: **PASS**
+- FastAPI 예상 Endpoint: **3/3 PASS**
+- Classification Checkpoint: `models/checkpoints/resnet18_transfer_best.pt`
+- Detection Checkpoint: `models/detection/day12_detection_best.pt`
+- Day 13 수동 Browser 확인: **not_recorded**
+
+수동 Browser 확인은 자동 HTTP·API Client·Overlay 검증과 구분하며, 실제 기록이 없는 상태를 완료로 변경하지 않습니다.
+
+### Final Documents
+
+- [Day 14 Final Integration·Portfolio·Interview Report](reports/day14_final_integration_portfolio_interview_summary.md)
+- [Day 14 Final Integration Summary](reports/artifacts/day14_final_integration_summary.json)
+- [Day 14 Architecture Plan](reports/day14_final_integration_readme_architecture_plan.md)
+
+<!-- DAY14_FINAL_INTEGRATION_END -->
