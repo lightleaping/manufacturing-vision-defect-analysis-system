@@ -1,7 +1,7 @@
-====================================================================================================
+﻿====================================================================================================
 FILE: .\src\api\app.py
 ====================================================================================================
-"""FastAPI Application Factory, Lifespan, Classification·Detection Endpoint."""
+"""FastAPI Application Factory, Lifespan, Health쨌Prediction Endpoint."""
 
 from __future__ import annotations
 
@@ -14,15 +14,9 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from src.api.config import ApiSettings, DEFAULT_API_SETTINGS
-from src.api.detection_inference_service import DetectionInferenceServiceError
 from src.api.image_validation import ImageValidationError, validate_uploaded_image
 from src.api.inference_service import InferenceServiceError
-from src.api.schemas import (
-    DetectionPredictionResponse,
-    ErrorResponse,
-    HealthResponse,
-    PredictionResponse,
-)
+from src.api.schemas import ErrorResponse, HealthResponse, PredictionResponse
 
 
 ServiceFactory = Callable[[], Any]
@@ -30,21 +24,11 @@ _DEFAULT_FACTORY = object()
 
 
 def _create_default_service() -> Any:
-    """순환 Import와 불필요한 Module 초기화를 피하는 Classification 지연 Import."""
+    """?쒗솚 Import? 遺덊븘?뷀븳 Module 珥덇린?붾? ?쇳븯湲??꾪븳 吏??Import."""
 
     from src.api.model_loader import create_production_inference_service
 
     return create_production_inference_service()
-
-
-def _create_default_detection_service() -> Any:
-    """Day 12 Best Checkpoint를 사용하는 Detection Service 지연 Import."""
-
-    from src.api.detection_model_loader import (
-        create_production_detection_inference_service,
-    )
-
-    return create_production_detection_inference_service()
 
 
 def _error_content(*, code: str, message: str) -> dict[str, dict[str, str]]:
@@ -59,15 +43,18 @@ def _error_content(*, code: str, message: str) -> dict[str, dict[str, str]]:
 def create_app(
     *,
     service_factory: ServiceFactory | None | object = _DEFAULT_FACTORY,
-    detection_service_factory: ServiceFactory | None = None,
     settings: ApiSettings = DEFAULT_API_SETTINGS,
 ) -> FastAPI:
-    """Production과 Test가 같은 API 구조를 사용하도록 App을 생성한다.
+    """Production怨?Test媛 媛숈? API 援ъ“瑜??ъ슜?섎룄濡?App???앹꽦?쒕떎.
 
-    ``service_factory``를 생략하면 기존 Classification Production Service를
-    Lifespan에서 한 번 로딩한다. 기존 테스트 호환성을 위해 Detection Factory의
-    기본값은 ``None``이다. 실제 Uvicorn용 전역 ``app``은 파일 마지막에서
-    Detection Production Factory를 명시적으로 전달한다.
+    service_factory ?앸왂:
+        ?ㅼ젣 ResNet18 Production Service瑜?Lifespan?먯꽌 ??踰?濡쒕뵫?쒕떎.
+
+    service_factory=None:
+        Model Not Ready ?곹깭瑜??섎룄?곸쑝濡?留뚮뱺??
+
+    Dummy Factory ?꾨떖:
+        ?ㅼ젣 Checkpoint ?놁씠 API ?듯빀 ?뚯뒪?몃? ?섑뻾?쒕떎.
     """
 
     if service_factory is _DEFAULT_FACTORY:
@@ -77,47 +64,30 @@ def create_app(
     else:
         raise TypeError("service_factory must be callable, None, or omitted")
 
-    if detection_service_factory is not None and not callable(
-        detection_service_factory
-    ):
-        raise TypeError("detection_service_factory must be callable or None")
-
     @asynccontextmanager
     async def lifespan(current_app: FastAPI):
         current_app.state.inference_service = None
         current_app.state.model_startup_failed = False
-        current_app.state.detection_inference_service = None
-        current_app.state.detection_model_startup_failed = False
 
         if resolved_service_factory is not None:
             try:
-                # Process 시작 때 Classification Model을 한 번만 로딩한다.
+                # Process ?쒖옉 ????踰덈쭔 Model쨌Checkpoint쨌Transform??濡쒕뵫?쒕떎.
                 current_app.state.inference_service = resolved_service_factory()
             except Exception:
+                # ?대? 寃쎈줈, Checkpoint ?뺣낫, Stack Trace??HTTP ?묐떟???몄텧?섏? ?딅뒗??
                 current_app.state.inference_service = None
                 current_app.state.model_startup_failed = True
-
-        if detection_service_factory is not None:
-            try:
-                # Day 12 Best Detection Checkpoint도 Process 시작 때 한 번만 로딩한다.
-                current_app.state.detection_inference_service = (
-                    detection_service_factory()
-                )
-            except Exception:
-                current_app.state.detection_inference_service = None
-                current_app.state.detection_model_startup_failed = True
 
         yield
 
         current_app.state.inference_service = None
-        current_app.state.detection_inference_service = None
 
     application = FastAPI(
         title=settings.service_name,
         version=settings.api_version,
         description=(
-            "ResNet18 이미지 Classification과 Faster R-CNN 결함 Detection을 "
-            "독립 Endpoint로 제공하는 제조 비전 API"
+            "ResNet18 Best Checkpoint瑜??ъ슜?섏뿬 ?쒖“ ?대?吏瑜?"
+            "NORMAL ?먮뒗 DEFECT濡?遺꾨쪟?섎뒗 API"
         ),
         lifespan=lifespan,
         docs_url="/docs",
@@ -134,7 +104,7 @@ def create_app(
             status_code=400,
             content=_error_content(
                 code="MISSING_FILE",
-                message="multipart/form-data의 file 필드가 필요합니다.",
+                message="multipart/form-data??file ?꾨뱶媛 ?꾩슂?⑸땲??",
             ),
         )
 
@@ -181,7 +151,7 @@ def create_app(
                 status_code=503,
                 detail={
                     "code": "MODEL_NOT_READY",
-                    "message": "추론 모델이 준비되지 않았습니다.",
+                    "message": "異붾줎 紐⑤뜽??以鍮꾨릺吏 ?딆븯?듬땲??",
                 },
             )
 
@@ -209,73 +179,7 @@ def create_app(
                 status_code=500,
                 detail={
                     "code": "INFERENCE_FAILED",
-                    "message": "이미지 추론 중 내부 오류가 발생했습니다.",
-                },
-            ) from exc
-
-        finally:
-            await file.close()
-
-    @application.post(
-        "/api/v1/detection/predictions",
-        response_model=DetectionPredictionResponse,
-        responses={
-            400: {"model": ErrorResponse},
-            413: {"model": ErrorResponse},
-            415: {"model": ErrorResponse},
-            500: {"model": ErrorResponse},
-            503: {"model": ErrorResponse},
-        },
-        tags=["Detection"],
-    )
-    async def create_detection_prediction(
-        request: Request,
-        file: UploadFile = File(...),
-        score_threshold: str | None = None,
-    ) -> DetectionPredictionResponse:
-        service = getattr(
-            request.app.state,
-            "detection_inference_service",
-            None,
-        )
-
-        if service is None or not getattr(service, "is_ready", False):
-            raise HTTPException(
-                status_code=503,
-                detail={
-                    "code": "DETECTION_MODEL_NOT_READY",
-                    "message": "Detection 모델이 준비되지 않았습니다.",
-                },
-            )
-
-        try:
-            validated_image = await validate_uploaded_image(
-                file,
-                settings=settings,
-            )
-            return service.predict(
-                validated_image,
-                score_threshold=score_threshold,
-            )
-
-        except ImageValidationError as exc:
-            raise HTTPException(
-                status_code=exc.status_code,
-                detail={"code": exc.code, "message": exc.message},
-            ) from exc
-
-        except DetectionInferenceServiceError as exc:
-            raise HTTPException(
-                status_code=exc.status_code,
-                detail={"code": exc.code, "message": exc.message},
-            ) from exc
-
-        except Exception as exc:
-            raise HTTPException(
-                status_code=500,
-                detail={
-                    "code": "DETECTION_INFERENCE_FAILED",
-                    "message": "Detection 추론 중 내부 오류가 발생했습니다.",
+                    "message": "?대?吏 異붾줎 以??대? ?ㅻ쪟媛 諛쒖깮?덉뒿?덈떎.",
                 },
             ) from exc
 
@@ -285,15 +189,15 @@ def create_app(
     return application
 
 
-# Uvicorn이 import하는 실제 Production App.
-# Classification과 Detection Service는 Lifespan 시작 시 각각 한 번만 로딩한다.
-app = create_app(
-    detection_service_factory=_create_default_detection_service,
-)
+# Uvicorn?먯꽌 import???ㅼ젣 Production App.
+# Model? ??以꾩뿉??濡쒕뵫?섏? ?딄퀬 Lifespan ?쒖옉 ????踰덈쭔 濡쒕뵫?쒕떎.
+app = create_app()
+
+
 ====================================================================================================
 FILE: .\src\api\config.py
 ====================================================================================================
-"""Day 7 FastAPI 이미지 추론 API의 고정 설정."""
+"""Day 7 FastAPI ?대?吏 異붾줎 API??怨좎젙 ?ㅼ젙."""
 
 from __future__ import annotations
 
@@ -312,7 +216,7 @@ DEFAULT_CHECKPOINT_PATH = (
 
 @dataclass(frozen=True, slots=True)
 class ApiSettings:
-    """API, 업로드 검증, 모델 추론에서 함께 사용하는 설정."""
+    """API, ?낅줈??寃利? 紐⑤뜽 異붾줎?먯꽌 ?④퍡 ?ъ슜?섎뒗 ?ㅼ젙."""
 
     service_name: str = "Manufacturing Vision Defect Analysis System"
     api_version: str = "v1"
@@ -324,10 +228,10 @@ class ApiSettings:
     classification_threshold: float = 0.5
     checkpoint_path: Path = DEFAULT_CHECKPOINT_PATH
 
-    # Dataset 원본은 300×300이므로 정상 업로드에는 충분한 여유가 있다.
+    # Dataset ?먮낯? 300횞300?대?濡??뺤긽 ?낅줈?쒖뿉??異⑸텇???ъ쑀媛 ?덈떎.
     max_upload_bytes: int = 10 * 1024 * 1024
 
-    # 압축 해제 후 지나치게 큰 이미지가 메모리를 점유하는 것을 방지한다.
+    # ?뺤텞 ?댁젣 ??吏?섏튂寃????대?吏媛 硫붾え由щ? ?먯쑀?섎뒗 寃껋쓣 諛⑹??쒕떎.
     max_image_pixels: int = 25_000_000
 
     allowed_extensions: tuple[str, ...] = (".jpg", ".jpeg", ".png")
@@ -336,10 +240,12 @@ class ApiSettings:
 
 
 DEFAULT_API_SETTINGS = ApiSettings()
+
+
 ====================================================================================================
 FILE: .\src\api\schemas.py
 ====================================================================================================
-"""FastAPI 정상 응답과 오류 응답 Schema."""
+"""FastAPI ?뺤긽 ?묐떟怨??ㅻ쪟 ?묐떟 Schema."""
 
 from __future__ import annotations
 
@@ -347,7 +253,7 @@ from pydantic import BaseModel, Field
 
 
 class HealthResponse(BaseModel):
-    """API Process와 Classification Model 준비 상태."""
+    """API Process? Model 以鍮??곹깭."""
 
     status: str
     service: str
@@ -357,7 +263,7 @@ class HealthResponse(BaseModel):
 
 
 class PredictionResponse(BaseModel):
-    """정상·불량 이진 분류 결과."""
+    """?뺤긽쨌遺덈웾 ?댁쭊 遺꾨쪟 寃곌낵."""
 
     prediction: int = Field(ge=0, le=1)
     prediction_class_name: str
@@ -379,65 +285,23 @@ class PredictionResponse(BaseModel):
     inference_time_ms: float = Field(ge=0.0)
 
 
-class DetectionBox(BaseModel):
-    """원본 업로드 이미지 좌표계의 XYXY Bounding Box."""
-
-    xmin: float = Field(ge=0.0)
-    ymin: float = Field(ge=0.0)
-    xmax: float = Field(gt=0.0)
-    ymax: float = Field(gt=0.0)
-
-
-class DetectionItem(BaseModel):
-    """한 개의 Faster R-CNN 결함 Prediction."""
-
-    label_id: int = Field(ge=1, le=6)
-    label_name: str
-    score: float = Field(ge=0.0, le=1.0)
-    box: DetectionBox
-
-
-class DetectionPredictionResponse(BaseModel):
-    """Detection 모델 Metadata·입력 이미지 정보·Prediction 목록."""
-
-    detections: list[DetectionItem] = Field(default_factory=list)
-    detection_count: int = Field(ge=0)
-
-    score_threshold: float = Field(ge=0.05, le=0.95)
-    iou_threshold: float = Field(ge=0.0, le=1.0)
-
-    model_name: str
-    model_version: str
-    architecture: str
-    device: str
-    checkpoint_epoch: int = Field(gt=0)
-    checkpoint_metric_name: str
-    checkpoint_metric_value: float = Field(ge=0.0, le=1.0)
-
-    original_filename: str
-    content_type: str
-    image_width: int = Field(gt=0)
-    image_height: int = Field(gt=0)
-    image_mode: str
-    model_input_mode: str
-    inference_time_ms: float = Field(ge=0.0)
-
-
 class ErrorDetail(BaseModel):
-    """외부에 공개해도 안전한 오류 정보."""
+    """?몃???怨듦컻?대룄 ?덉쟾???ㅻ쪟 ?뺣낫."""
 
     code: str
     message: str
 
 
 class ErrorResponse(BaseModel):
-    """프로젝트 공통 오류 응답."""
+    """?꾨줈?앺듃 怨듯넻 ?ㅻ쪟 ?묐떟."""
 
     detail: ErrorDetail
+
+
 ====================================================================================================
 FILE: .\src\api\image_validation.py
 ====================================================================================================
-"""업로드 이미지 제한 읽기, 실제 Decode 검증, RGB 변환."""
+"""?낅줈???대?吏 ?쒗븳 ?쎄린, ?ㅼ젣 Decode 寃利? RGB 蹂??"""
 
 from __future__ import annotations
 
@@ -471,7 +335,7 @@ _CONTENT_TYPE_TO_DECODED_FORMAT = {
 
 
 class ImageValidationError(ValueError):
-    """클라이언트가 보낸 이미지가 프로젝트 정책을 만족하지 못한 경우."""
+    """?대씪?댁뼵?멸? 蹂대궦 ?대?吏媛 ?꾨줈?앺듃 ?뺤콉??留뚯”?섏? 紐삵븳 寃쎌슦."""
 
     def __init__(self, *, code: str, message: str, status_code: int) -> None:
         super().__init__(message)
@@ -482,7 +346,7 @@ class ImageValidationError(ValueError):
 
 @dataclass(slots=True)
 class ValidatedImage:
-    """검증과 RGB 변환을 마친 이미지 및 원본 Metadata."""
+    """寃利앷낵 RGB 蹂?섏쓣 留덉튇 ?대?吏 諛??먮낯 Metadata."""
 
     original_filename: str
     content_type: str
@@ -497,7 +361,7 @@ def _normalize_content_type(content_type: str | None) -> str:
     if not content_type:
         return ""
 
-    # 부가 Parameter가 있더라도 기본 MIME Type만 비교한다.
+    # 遺媛 Parameter媛 ?덈뜑?쇰룄 湲곕낯 MIME Type留?鍮꾧탳?쒕떎.
     return content_type.split(";", maxsplit=1)[0].strip().lower()
 
 
@@ -513,7 +377,7 @@ def validate_upload_metadata(
     content_type: str | None,
     settings: ApiSettings = DEFAULT_API_SETTINGS,
 ) -> tuple[str, str]:
-    """파일명 확장자와 Content-Type을 교차 검증한다."""
+    """?뚯씪紐??뺤옣?먯? Content-Type??援먯감 寃利앺븳??"""
 
     suffix = _extract_suffix(filename)
     normalized_content_type = _normalize_content_type(content_type)
@@ -521,14 +385,14 @@ def validate_upload_metadata(
     if suffix not in settings.allowed_extensions:
         raise ImageValidationError(
             code="UNSUPPORTED_FILE_TYPE",
-            message="JPEG, JPG, PNG 형식의 이미지만 업로드할 수 있습니다.",
+            message="JPEG, JPG, PNG ?뺤떇???대?吏留??낅줈?쒗븷 ???덉뒿?덈떎.",
             status_code=415,
         )
 
     if normalized_content_type not in settings.allowed_content_types:
         raise ImageValidationError(
             code="UNSUPPORTED_FILE_TYPE",
-            message="지원하지 않는 이미지 Content-Type입니다.",
+            message="吏?먰븯吏 ?딅뒗 ?대?吏 Content-Type?낅땲??",
             status_code=415,
         )
 
@@ -536,7 +400,7 @@ def validate_upload_metadata(
     if normalized_content_type != expected_content_type:
         raise ImageValidationError(
             code="UNSUPPORTED_FILE_TYPE",
-            message="파일 확장자와 Content-Type이 일치하지 않습니다.",
+            message="?뚯씪 ?뺤옣?먯? Content-Type???쇱튂?섏? ?딆뒿?덈떎.",
             status_code=415,
         )
 
@@ -549,7 +413,7 @@ async def read_upload_file_limited(
     max_upload_bytes: int,
     chunk_size: int = 1024 * 1024,
 ) -> bytes:
-    """허용 크기보다 1 byte까지만 읽어 과대 업로드를 차단한다."""
+    """?덉슜 ?ш린蹂대떎 1 byte源뚯?留??쎌뼱 怨쇰? ?낅줈?쒕? 李⑤떒?쒕떎."""
 
     chunks: list[bytes] = []
     total_size = 0
@@ -571,7 +435,7 @@ async def read_upload_file_limited(
         if total_size > max_upload_bytes:
             raise ImageValidationError(
                 code="FILE_TOO_LARGE",
-                message="업로드 파일이 최대 허용 크기를 초과했습니다.",
+                message="?낅줈???뚯씪??理쒕? ?덉슜 ?ш린瑜?珥덇낵?덉뒿?덈떎.",
                 status_code=413,
             )
 
@@ -580,7 +444,7 @@ async def read_upload_file_limited(
     if not data:
         raise ImageValidationError(
             code="EMPTY_FILE",
-            message="업로드한 파일이 비어 있습니다.",
+            message="?낅줈?쒗븳 ?뚯씪??鍮꾩뼱 ?덉뒿?덈떎.",
             status_code=400,
         )
 
@@ -594,12 +458,12 @@ def decode_and_validate_image(
     content_type: str,
     settings: ApiSettings = DEFAULT_API_SETTINGS,
 ) -> ValidatedImage:
-    """실제 이미지 형식, 무결성, Pixel 수를 확인하고 RGB로 변환한다."""
+    """?ㅼ젣 ?대?吏 ?뺤떇, 臾닿껐?? Pixel ?섎? ?뺤씤?섍퀬 RGB濡?蹂?섑븳??"""
 
     if not data:
         raise ImageValidationError(
             code="EMPTY_FILE",
-            message="업로드한 파일이 비어 있습니다.",
+            message="?낅줈?쒗븳 ?뚯씪??鍮꾩뼱 ?덉뒿?덈떎.",
             status_code=400,
         )
 
@@ -613,18 +477,18 @@ def decode_and_validate_image(
         with warnings.catch_warnings():
             warnings.simplefilter("error", Image.DecompressionBombWarning)
 
-            # verify()로 Container 구조와 손상 여부를 먼저 검사한다.
+            # verify()濡?Container 援ъ“? ?먯긽 ?щ?瑜?癒쇱? 寃?ы븳??
             with Image.open(BytesIO(data)) as verification_image:
                 verification_image.verify()
 
-            # verify() 이후 실제 Pixel을 읽기 위해 새 Image 객체를 연다.
+            # verify() ?댄썑 ?ㅼ젣 Pixel???쎄린 ?꾪빐 ??Image 媛앹껜瑜??곕떎.
             with Image.open(BytesIO(data)) as decoded_image:
                 decoded_format = (decoded_image.format or "").upper()
 
                 if decoded_format not in settings.allowed_decoded_formats:
                     raise ImageValidationError(
                         code="UNSUPPORTED_FILE_TYPE",
-                        message="실제 Decode 결과가 지원 이미지 형식이 아닙니다.",
+                        message="?ㅼ젣 Decode 寃곌낵媛 吏???대?吏 ?뺤떇???꾨떃?덈떎.",
                         status_code=415,
                     )
 
@@ -639,7 +503,7 @@ def decode_and_validate_image(
                 ):
                     raise ImageValidationError(
                         code="UNSUPPORTED_FILE_TYPE",
-                        message="파일 Metadata와 실제 이미지 형식이 일치하지 않습니다.",
+                        message="?뚯씪 Metadata? ?ㅼ젣 ?대?吏 ?뺤떇???쇱튂?섏? ?딆뒿?덈떎.",
                         status_code=415,
                     )
 
@@ -647,21 +511,21 @@ def decode_and_validate_image(
                 if width <= 0 or height <= 0:
                     raise ImageValidationError(
                         code="INVALID_IMAGE",
-                        message="이미지 크기 정보가 올바르지 않습니다.",
+                        message="?대?吏 ?ш린 ?뺣낫媛 ?щ컮瑜댁? ?딆뒿?덈떎.",
                         status_code=400,
                     )
 
                 if width * height > settings.max_image_pixels:
                     raise ImageValidationError(
                         code="IMAGE_TOO_LARGE",
-                        message="이미지 Pixel 수가 최대 허용 범위를 초과했습니다.",
+                        message="?대?吏 Pixel ?섍? 理쒕? ?덉슜 踰붿쐞瑜?珥덇낵?덉뒿?덈떎.",
                         status_code=413,
                     )
 
                 original_mode = decoded_image.mode
                 decoded_image.load()
 
-                # 원본 객체와 수명 및 메모리를 분리한 RGB 복사본을 만든다.
+                # ?먮낯 媛앹껜? ?섎챸 諛?硫붾え由щ? 遺꾨━??RGB 蹂듭궗蹂몄쓣 留뚮뱺??
                 rgb_image = decoded_image.convert("RGB").copy()
 
     except ImageValidationError:
@@ -675,7 +539,7 @@ def decode_and_validate_image(
     ) as exc:
         raise ImageValidationError(
             code="INVALID_IMAGE",
-            message="업로드한 파일을 정상적인 이미지로 읽을 수 없습니다.",
+            message="?낅줈?쒗븳 ?뚯씪???뺤긽?곸씤 ?대?吏濡??쎌쓣 ???놁뒿?덈떎.",
             status_code=400,
         ) from exc
 
@@ -695,12 +559,12 @@ async def validate_uploaded_image(
     *,
     settings: ApiSettings = DEFAULT_API_SETTINGS,
 ) -> ValidatedImage:
-    """FastAPI UploadFile을 제한 읽기하고 검증된 RGB 이미지로 만든다."""
+    """FastAPI UploadFile???쒗븳 ?쎄린?섍퀬 寃利앸맂 RGB ?대?吏濡?留뚮뱺??"""
 
     filename = upload_file.filename or ""
     content_type = upload_file.content_type or ""
 
-    # 허용하지 않는 Metadata는 파일 본문을 읽기 전에 거절한다.
+    # ?덉슜?섏? ?딅뒗 Metadata???뚯씪 蹂몃Ц???쎄린 ?꾩뿉 嫄곗젅?쒕떎.
     validate_upload_metadata(
         filename=filename,
         content_type=content_type,
@@ -718,12 +582,14 @@ async def validate_uploaded_image(
         content_type=content_type,
         settings=settings,
     )
+
+
 ====================================================================================================
 FILE: .\src\api\model_loader.py
 ====================================================================================================
-"""실제 ResNet18 Best Checkpoint를 API 추론 Service로 연결한다.
+"""?ㅼ젣 ResNet18 Best Checkpoint瑜?API 異붾줎 Service濡??곌껐?쒕떎.
 
-[그대로 재사용]
+[洹몃?濡??ъ궗??
 - scripts.run_day4_resnet18_training.restore_best_checkpoint
 - src.data.image_transforms.create_test_transform
 """
@@ -742,7 +608,7 @@ def create_production_inference_service(
     *,
     settings: ApiSettings = DEFAULT_API_SETTINGS,
 ) -> ImageInferenceService:
-    """Checkpoint와 Test Transform을 한 번 로딩해 Production Service를 만든다."""
+    """Checkpoint? Test Transform????踰?濡쒕뵫??Production Service瑜?留뚮뱺??"""
 
     checkpoint_path = settings.checkpoint_path.resolve()
     if not checkpoint_path.is_file():
@@ -752,14 +618,13 @@ def create_production_inference_service(
 
     device = torch.device(settings.device)
 
-    # 기존 Day 4 복원 함수는 weights=None Model을 만들고 전체 state_dict를
-    # 복원하므로 ImageNet Weight를 다시 다운로드하지 않는다.
+    # 湲곗〈 Day 4 蹂듭썝 ?⑥닔??weights=None Model??留뚮뱾怨??꾩껜 state_dict瑜?    # 蹂듭썝?섎?濡?ImageNet Weight瑜??ㅼ떆 ?ㅼ슫濡쒕뱶?섏? ?딅뒗??
     model = restore_best_checkpoint(
         checkpoint_path=checkpoint_path,
         device=device,
     )
 
-    # Day 2에서 검증한 Resize → ToTensor → ImageNet Normalize를 재사용한다.
+    # Day 2?먯꽌 寃利앺븳 Resize ??ToTensor ??ImageNet Normalize瑜??ъ궗?⑺븳??
     transform = create_test_transform()
 
     return ImageInferenceService(
@@ -768,10 +633,12 @@ def create_production_inference_service(
         device=device,
         settings=settings,
     )
+
+
 ====================================================================================================
 FILE: .\src\api\inference_service.py
 ====================================================================================================
-"""검증된 RGB 이미지에 Test Transform과 이진 분류 모델을 적용한다."""
+"""寃利앸맂 RGB ?대?吏??Test Transform怨??댁쭊 遺꾨쪟 紐⑤뜽???곸슜?쒕떎."""
 
 from __future__ import annotations
 
@@ -789,7 +656,7 @@ from src.api.schemas import PredictionResponse
 
 
 class InferenceServiceError(RuntimeError):
-    """모델 입력 준비, 추론, 출력 검증 실패."""
+    """紐⑤뜽 ?낅젰 以鍮? 異붾줎, 異쒕젰 寃利??ㅽ뙣."""
 
     def __init__(
         self,
@@ -805,7 +672,7 @@ class InferenceServiceError(RuntimeError):
 
 
 class ImageInferenceService:
-    """단일 제조 이미지의 NORMAL·DEFECT 추론 Service."""
+    """?⑥씪 ?쒖“ ?대?吏??NORMAL쨌DEFECT 異붾줎 Service."""
 
     def __init__(
         self,
@@ -829,7 +696,7 @@ class ImageInferenceService:
         self.model = model.to(self.device)
         self.transform = transform
 
-        # Service 생성 시 한 번만 Evaluation Mode로 전환한다.
+        # Service ?앹꽦 ????踰덈쭔 Evaluation Mode濡??꾪솚?쒕떎.
         self.model.eval()
         self.is_ready = True
 
@@ -851,27 +718,27 @@ class ImageInferenceService:
         if not isinstance(transformed, Tensor):
             raise InferenceServiceError(
                 code="INVALID_MODEL_INPUT",
-                message="이미지 Transform 결과가 Tensor가 아닙니다.",
+                message="?대?吏 Transform 寃곌낵媛 Tensor媛 ?꾨떃?덈떎.",
             )
 
-        # Day 2 create_test_transform() 결과는 [C, H, W]다.
+        # Day 2 create_test_transform() 寃곌낵??[C, H, W]??
         if transformed.ndim != 3:
             raise InferenceServiceError(
                 code="INVALID_MODEL_INPUT",
-                message="이미지 Transform 출력 Shape가 올바르지 않습니다.",
+                message="?대?吏 Transform 異쒕젰 Shape媛 ?щ컮瑜댁? ?딆뒿?덈떎.",
             )
 
         if not torch.isfinite(transformed).all().item():
             raise InferenceServiceError(
                 code="INVALID_MODEL_INPUT",
-                message="이미지 Transform 결과에 NaN 또는 Infinity가 있습니다.",
+                message="?대?吏 Transform 寃곌낵??NaN ?먮뒗 Infinity媛 ?덉뒿?덈떎.",
             )
 
         batch = transformed.unsqueeze(0)
         if batch.ndim != 4 or batch.shape[0] != 1:
             raise InferenceServiceError(
                 code="INVALID_MODEL_INPUT",
-                message="모델 입력 Batch Shape가 올바르지 않습니다.",
+                message="紐⑤뜽 ?낅젰 Batch Shape媛 ?щ컮瑜댁? ?딆뒿?덈떎.",
             )
 
         return batch.to(self.device)
@@ -881,33 +748,33 @@ class ImageInferenceService:
         if not isinstance(output, Tensor):
             raise InferenceServiceError(
                 code="INVALID_MODEL_OUTPUT",
-                message="모델 출력이 Tensor가 아닙니다.",
+                message="紐⑤뜽 異쒕젰??Tensor媛 ?꾨떃?덈떎.",
             )
 
-        # ResNet18Transfer의 Batch Size 1 출력 [1]을 기본으로 사용한다.
-        # 일반적인 Binary Head의 [1, 1]도 같은 의미이므로 허용한다.
+        # ResNet18Transfer??Batch Size 1 異쒕젰 [1]??湲곕낯?쇰줈 ?ъ슜?쒕떎.
+        # ?쇰컲?곸씤 Binary Head??[1, 1]??媛숈? ?섎??대?濡??덉슜?쒕떎.
         if tuple(output.shape) not in {(1,), (1, 1)}:
             raise InferenceServiceError(
                 code="INVALID_MODEL_OUTPUT",
-                message="모델 출력 Shape가 올바르지 않습니다.",
+                message="紐⑤뜽 異쒕젰 Shape媛 ?щ컮瑜댁? ?딆뒿?덈떎.",
             )
 
         return output.reshape(-1)
 
     def predict(self, image: ValidatedImage) -> PredictionResponse:
-        """Raw Logit → Sigmoid → Threshold 순서로 추론한다."""
+        """Raw Logit ??Sigmoid ??Threshold ?쒖꽌濡?異붾줎?쒕떎."""
 
         started_at = perf_counter()
         batch = self._prepare_batch(image.rgb_image)
 
         try:
-            # Prediction API에서는 Gradient와 Backward가 필요하지 않다.
+            # Prediction API?먯꽌??Gradient? Backward媛 ?꾩슂?섏? ?딅떎.
             with torch.inference_mode():
                 raw_output = self.model(batch)
         except Exception as exc:
             raise InferenceServiceError(
                 code="INFERENCE_FAILED",
-                message="모델 추론 중 오류가 발생했습니다.",
+                message="紐⑤뜽 異붾줎 以??ㅻ쪟媛 諛쒖깮?덉뒿?덈떎.",
             ) from exc
 
         output = self._validate_model_output(raw_output)
@@ -916,20 +783,20 @@ class ImageInferenceService:
         if not math.isfinite(raw_logit):
             raise InferenceServiceError(
                 code="INVALID_MODEL_OUTPUT",
-                message="모델 Raw Logit이 유한한 값이 아닙니다.",
+                message="紐⑤뜽 Raw Logit???좏븳??媛믪씠 ?꾨떃?덈떎.",
             )
 
         defect_probability = float(torch.sigmoid(output[0]).item())
         if not math.isfinite(defect_probability):
             raise InferenceServiceError(
                 code="INVALID_MODEL_OUTPUT",
-                message="모델 확률 출력이 유한한 값이 아닙니다.",
+                message="紐⑤뜽 ?뺣쪧 異쒕젰???좏븳??媛믪씠 ?꾨떃?덈떎.",
             )
 
         if not 0.0 <= defect_probability <= 1.0:
             raise InferenceServiceError(
                 code="INVALID_MODEL_OUTPUT",
-                message="모델 확률 출력 범위가 올바르지 않습니다.",
+                message="紐⑤뜽 ?뺣쪧 異쒕젰 踰붿쐞媛 ?щ컮瑜댁? ?딆뒿?덈떎.",
             )
 
         threshold = float(self.settings.classification_threshold)
@@ -955,20 +822,20 @@ class ImageInferenceService:
             image_mode=image.original_mode,
             inference_time_ms=inference_time_ms,
         )
+
+
 ====================================================================================================
 FILE: .\src\detection\checkpoint.py
 ====================================================================================================
-"""Day 12 Detection Checkpoint 저장·복원.
+"""Day 12 Detection Checkpoint ??Β룸났??
 
-[기존 코드 참고]
-Classification 학습 코드의 원자적 저장 원칙을 Detection에도 적용한다.
+[湲곗〈 肄붾뱶 李멸퀬]
+Classification ?숈뒿 肄붾뱶???먯옄??????먯튃??Detection?먮룄 ?곸슜?쒕떎.
 
-[신규 구현]
-- ``latest``와 ``best`` 두 파일만 유지하는 저장 구조
-- Model·Optimizer·Scheduler·Config·Class Mapping·History 통합 저장
-- CPU ``map_location`` 복원
-- 필수 Key와 Class Mapping 일치 검증
-- 임시 파일 저장 후 ``Path.replace``를 사용하는 원자적 교체
+[?좉퇋 援ы쁽]
+- ``latest``? ``best`` ???뚯씪留??좎??섎뒗 ???援ъ“
+- Model쨌Optimizer쨌Scheduler쨌Config쨌Class Mapping쨌History ?듯빀 ???- CPU ``map_location`` 蹂듭썝
+- ?꾩닔 Key? Class Mapping ?쇱튂 寃利?- ?꾩떆 ?뚯씪 ?????``Path.replace``瑜??ъ슜?섎뒗 ?먯옄??援먯껜
 """
 
 from __future__ import annotations
@@ -1003,7 +870,7 @@ REQUIRED_CHECKPOINT_KEYS = frozenset(
 
 @dataclass(frozen=True, slots=True)
 class DetectionCheckpointState:
-    """Checkpoint 복원 뒤 Trainer가 이어서 사용할 Metadata."""
+    """Checkpoint 蹂듭썝 ??Trainer媛 ?댁뼱???ъ슜??Metadata."""
 
     epoch: int
     next_epoch: int
@@ -1058,7 +925,7 @@ def build_detection_checkpoint_payload(
     best_metric: float,
     history: Sequence[Mapping[str, Any]],
 ) -> dict[str, Any]:
-    """학습 상태를 재개 가능한 단일 Payload로 구성한다."""
+    """?숈뒿 ?곹깭瑜??ш컻 媛?ν븳 ?⑥씪 Payload濡?援ъ꽦?쒕떎."""
     if not isinstance(epoch, int) or isinstance(epoch, bool) or epoch < 0:
         raise ValueError("epoch must be a non-negative int.")
     if not isinstance(model, nn.Module):
@@ -1109,7 +976,7 @@ def save_detection_checkpoint(
     best_path: Path | None = None,
     is_best: bool = False,
 ) -> tuple[Path, Path | None]:
-    """Checkpoint를 임시 파일에 쓴 뒤 latest·best 경로로 교체한다."""
+    """Checkpoint瑜??꾩떆 ?뚯씪??????latest쨌best 寃쎈줈濡?援먯껜?쒕떎."""
     latest = _validate_checkpoint_path(latest_path)
     best = None if best_path is None else _validate_checkpoint_path(best_path)
     if not isinstance(is_best, bool):
@@ -1157,7 +1024,7 @@ def load_detection_checkpoint_payload(
     *,
     map_location: str | torch.device = "cpu",
 ) -> dict[str, Any]:
-    """신뢰할 수 있는 프로젝트 Checkpoint를 CPU 기준으로 읽고 Schema를 검증한다."""
+    """?좊ː?????덈뒗 ?꾨줈?앺듃 Checkpoint瑜?CPU 湲곗??쇰줈 ?쎄퀬 Schema瑜?寃利앺븳??"""
     checkpoint_path = _validate_checkpoint_path(path)
     if not checkpoint_path.is_file():
         raise FileNotFoundError(
@@ -1171,7 +1038,7 @@ def load_detection_checkpoint_payload(
             weights_only=True,
         )
     except TypeError:
-        # 오래된 PyTorch와의 호환용 분기다.
+        # ?ㅻ옒??PyTorch????명솚??遺꾧린??
         payload = torch.load(
             checkpoint_path,
             map_location=torch.device(map_location),
@@ -1209,7 +1076,7 @@ def restore_detection_checkpoint(
     map_location: str | torch.device = "cpu",
     strict: bool = True,
 ) -> DetectionCheckpointState:
-    """Model과 선택적인 Optimizer·Scheduler 상태를 복원한다."""
+    """Model怨??좏깮?곸씤 Optimizer쨌Scheduler ?곹깭瑜?蹂듭썝?쒕떎."""
     if not isinstance(model, nn.Module):
         raise TypeError("model must be torch.nn.Module.")
     if optimizer is not None and not isinstance(optimizer, Optimizer):
@@ -1260,19 +1127,21 @@ def restore_detection_checkpoint(
         class_mapping=saved_mapping,
         history=[dict(item) for item in history],
     )
+
+
 ====================================================================================================
 FILE: .\src\detection\model_factory.py
 ====================================================================================================
-"""Torchvision Faster R-CNN 생성과 NEU-DET 7-Class Head 교체.
+"""Torchvision Faster R-CNN ?앹꽦怨?NEU-DET 7-Class Head 援먯껜.
 
-[기존 코드 참고]
-``model_config.py``에서 확정한 Architecture, Class Mapping, 입력 크기를 사용한다.
+[湲곗〈 肄붾뱶 李멸퀬]
+``model_config.py``?먯꽌 ?뺤젙??Architecture, Class Mapping, ?낅젰 ?ш린瑜??ъ슜?쒕떎.
 
-[신규 구현]
-- Weight 다운로드 여부를 명시적으로 분리한다.
-- Day 11 Smoke Test에서는 Detection Weight와 Backbone Weight를 모두 끈다.
-- Day 12에서는 같은 Factory에 pretrained 설정만 전달해 전이학습 모델을 만든다.
-- CPU Smoke Test의 실행 시간을 줄일 때만 Proposal 수 제한을 선택적으로 적용한다.
+[?좉퇋 援ы쁽]
+- Weight ?ㅼ슫濡쒕뱶 ?щ?瑜?紐낆떆?곸쑝濡?遺꾨━?쒕떎.
+- Day 11 Smoke Test?먯꽌??Detection Weight? Backbone Weight瑜?紐⑤몢 ?덈떎.
+- Day 12?먯꽌??媛숈? Factory??pretrained ?ㅼ젙留??꾨떖???꾩씠?숈뒿 紐⑤뜽??留뚮뱺??
+- CPU Smoke Test???ㅽ뻾 ?쒓컙??以꾩씪 ?뚮쭔 Proposal ???쒗븳???좏깮?곸쑝濡??곸슜?쒕떎.
 """
 
 from __future__ import annotations
@@ -1294,9 +1163,9 @@ from src.detection.model_config import DetectionModelConfig
 
 @dataclass(frozen=True, slots=True)
 class DetectionProposalLimits:
-    """CPU Smoke Test에서 Proposal 계산량을 제한하는 선택 설정.
+    """CPU Smoke Test?먯꽌 Proposal 怨꾩궛?됱쓣 ?쒗븳?섎뒗 ?좏깮 ?ㅼ젙.
 
-    Day 12 실제 학습에서는 이 설정을 전달하지 않아 Torchvision 기본값을 쓴다.
+    Day 12 ?ㅼ젣 ?숈뒿?먯꽌?????ㅼ젙???꾨떖?섏? ?딆븘 Torchvision 湲곕낯媛믪쓣 ?대떎.
     """
 
     rpn_pre_nms_top_n_train: int = 40
@@ -1345,7 +1214,7 @@ class DetectionProposalLimits:
 
 @dataclass(frozen=True, slots=True)
 class DetectionModelBuildResult:
-    """생성된 모델과 재현 가능한 Build Metadata."""
+    """?앹꽦??紐⑤뜽怨??ы쁽 媛?ν븳 Build Metadata."""
 
     model: nn.Module
     metadata: dict[str, Any]
@@ -1372,7 +1241,7 @@ def _resolve_weight_arguments(
     FasterRCNN_MobileNet_V3_Large_320_FPN_Weights | None,
     MobileNet_V3_Large_Weights | None,
 ]:
-    """요청하지 않은 Weight 다운로드가 발생하지 않도록 명시적으로 반환한다."""
+    """?붿껌?섏? ?딆? Weight ?ㅼ슫濡쒕뱶媛 諛쒖깮?섏? ?딅룄濡?紐낆떆?곸쑝濡?諛섑솚?쒕떎."""
     if config.use_pretrained_weights:
         return (
             FasterRCNN_MobileNet_V3_Large_320_FPN_Weights.DEFAULT,
@@ -1388,7 +1257,7 @@ def replace_detection_predictor(
     *,
     num_classes: int,
 ) -> nn.Module:
-    """기존 COCO Predictor를 Background 포함 NEU-DET Class 수로 교체한다."""
+    """湲곗〈 COCO Predictor瑜?Background ?ы븿 NEU-DET Class ?섎줈 援먯껜?쒕떎."""
     if not isinstance(num_classes, int) or isinstance(num_classes, bool):
         raise TypeError("num_classes must be int.")
     if num_classes < 2:
@@ -1416,11 +1285,11 @@ def create_detection_model(
     training: bool = False,
     proposal_limits: DetectionProposalLimits | None = None,
 ) -> DetectionModelBuildResult:
-    """MobileNetV3 Faster R-CNN을 생성하고 7-Class Head를 보장한다.
+    """MobileNetV3 Faster R-CNN???앹꽦?섍퀬 7-Class Head瑜?蹂댁옣?쒕떎.
 
-    ``use_pretrained_weights=False``와 ``use_pretrained_backbone=False``이면
-    ``weights=None``과 ``weights_backbone=None``을 모두 전달하므로 네트워크
-    다운로드가 발생하지 않는다.
+    ``use_pretrained_weights=False``? ``use_pretrained_backbone=False``?대㈃
+    ``weights=None``怨?``weights_backbone=None``??紐⑤몢 ?꾨떖?섎?濡??ㅽ듃?뚰겕
+    ?ㅼ슫濡쒕뱶媛 諛쒖깮?섏? ?딅뒗??
     """
     resolved_config = config or DetectionModelConfig()
     if not isinstance(resolved_config, DetectionModelConfig):
@@ -1448,8 +1317,8 @@ def create_detection_model(
     if proposal_limits is not None:
         constructor_kwargs.update(proposal_limits.to_torchvision_kwargs())
 
-    # Full Detection Weight는 COCO Head를 포함하므로 num_classes를 생성자에
-    # 전달하지 않고 생성 후 Predictor를 교체한다.
+    # Full Detection Weight??COCO Head瑜??ы븿?섎?濡?num_classes瑜??앹꽦?먯뿉
+    # ?꾨떖?섏? ?딄퀬 ?앹꽦 ??Predictor瑜?援먯껜?쒕떎.
     if detection_weights is None:
         constructor_kwargs["num_classes"] = resolved_config.num_classes
 
@@ -1497,17 +1366,19 @@ def create_detection_model(
         ),
     }
     return DetectionModelBuildResult(model=model, metadata=metadata)
+
+
 ====================================================================================================
 FILE: .\src\detection\model_config.py
 ====================================================================================================
-"""Day 11 Object Detection 공통 Class·Model 설정.
+"""Day 11 Object Detection 怨듯넻 Class쨌Model ?ㅼ젙.
 
-[그대로 재사용]
-Day 9 ``dataset_config.py``에 이미 확정된 NEU-DET Class 순서와
-Torchvision 모델 Label Mapping을 이 모듈의 단일 기준으로 사용한다.
+[洹몃?濡??ъ궗??
+Day 9 ``dataset_config.py``???대? ?뺤젙??NEU-DET Class ?쒖꽌?
+Torchvision 紐⑤뜽 Label Mapping????紐⑤뱢???⑥씪 湲곗??쇰줈 ?ъ슜?쒕떎.
 
-이 파일은 모델 Weight를 다운로드하거나 Detection Model을 생성하지 않는다.
-Dataset, DataLoader, Model Factory가 공유할 검증된 설정 계약만 제공한다.
+???뚯씪? 紐⑤뜽 Weight瑜??ㅼ슫濡쒕뱶?섍굅??Detection Model???앹꽦?섏? ?딅뒗??
+Dataset, DataLoader, Model Factory媛 怨듭쑀??寃利앸맂 ?ㅼ젙 怨꾩빟留??쒓났?쒕떎.
 """
 
 from __future__ import annotations
@@ -1533,7 +1404,7 @@ DuplicateBoxPolicy = Literal["preserve", "remove_exact"]
 
 
 def _find_background_class_name() -> str:
-    """Day 9 모델 Mapping에서 Label 0의 Class 이름을 찾는다."""
+    """Day 9 紐⑤뜽 Mapping?먯꽌 Label 0??Class ?대쫫??李얜뒗??"""
     matches = [
         class_name
         for class_name, class_index in DETECTION_MODEL_CLASS_TO_INDEX.items()
@@ -1556,7 +1427,7 @@ DEFAULT_DEFECT_CLASS_NAMES: Final[tuple[str, ...]] = tuple(
 def validate_defect_class_names(
     class_names: Sequence[str],
 ) -> tuple[str, ...]:
-    """결함 Class 순서를 검증하고 변경 불가능한 Tuple로 반환한다."""
+    """寃고븿 Class ?쒖꽌瑜?寃利앺븯怨?蹂寃?遺덇??ν븳 Tuple濡?諛섑솚?쒕떎."""
     if isinstance(class_names, (str, bytes)):
         raise TypeError("class_names must be a sequence of strings.")
 
@@ -1580,11 +1451,10 @@ def validate_defect_class_names(
 def build_detection_label_maps(
     class_names: Sequence[str] = DEFAULT_DEFECT_CLASS_NAMES,
 ) -> tuple[dict[str, int], dict[int, str]]:
-    """Background=0, 실제 결함=1..N인 Detection Mapping을 만든다.
+    """Background=0, ?ㅼ젣 寃고븿=1..N??Detection Mapping??留뚮뱺??
 
-    기본 NEU-DET Class를 사용할 때는 Day 9에서 이미 확정한
-    ``DETECTION_MODEL_CLASS_TO_INDEX``를 그대로 복사한다. 테스트 Fixture처럼
-    사용자 정의 Class 순서를 받을 때만 같은 규칙으로 새 Mapping을 만든다.
+    湲곕낯 NEU-DET Class瑜??ъ슜???뚮뒗 Day 9?먯꽌 ?대? ?뺤젙??    ``DETECTION_MODEL_CLASS_TO_INDEX``瑜?洹몃?濡?蹂듭궗?쒕떎. ?뚯뒪??Fixture泥섎읆
+    ?ъ슜???뺤쓽 Class ?쒖꽌瑜?諛쏆쓣 ?뚮쭔 媛숈? 洹쒖튃?쇰줈 ??Mapping??留뚮뱺??
     """
     normalized = validate_defect_class_names(class_names)
 
@@ -1620,7 +1490,7 @@ def build_detection_label_maps(
 
 
 def validate_split_name(split: str) -> str:
-    """Day 9 Manifest가 제공하는 세 Split만 허용한다."""
+    """Day 9 Manifest媛 ?쒓났?섎뒗 ??Split留??덉슜?쒕떎."""
     if not isinstance(split, str):
         raise TypeError("split must be str.")
     if split not in SUPPORTED_SPLITS:
@@ -1631,7 +1501,7 @@ def validate_split_name(split: str) -> str:
 
 
 def validate_duplicate_box_policy(policy: str) -> DuplicateBoxPolicy:
-    """원본 보존 또는 완전히 같은 Class·좌표만 제거하도록 제한한다."""
+    """?먮낯 蹂댁〈 ?먮뒗 ?꾩쟾??媛숈? Class쨌醫뚰몴留??쒓굅?섎룄濡??쒗븳?쒕떎."""
     if not isinstance(policy, str):
         raise TypeError("duplicate_box_policy must be str.")
     if policy not in {"preserve", "remove_exact"}:
@@ -1643,11 +1513,11 @@ def validate_duplicate_box_policy(policy: str) -> DuplicateBoxPolicy:
 
 @dataclass(frozen=True, slots=True)
 class DetectionModelConfig:
-    """Day 11·12 Faster R-CNN 공통 설정.
+    """Day 11쨌12 Faster R-CNN 怨듯넻 ?ㅼ젙.
 
-    현재 CPU 환경의 기본 Architecture는 MobileNetV3 Large 320 FPN이다.
-    Stage 1에서는 Weight를 사용하지 않으며 실제 생성은 다음 Model Factory가
-    담당한다.
+    ?꾩옱 CPU ?섍꼍??湲곕낯 Architecture??MobileNetV3 Large 320 FPN?대떎.
+    Stage 1?먯꽌??Weight瑜??ъ슜?섏? ?딆쑝硫??ㅼ젣 ?앹꽦? ?ㅼ쓬 Model Factory媛
+    ?대떦?쒕떎.
     """
 
     architecture: str = SUPPORTED_ARCHITECTURE
@@ -1701,7 +1571,7 @@ class DetectionModelConfig:
 
     @property
     def num_classes(self) -> int:
-        """Background 1개를 포함한 Faster R-CNN 출력 Class 수."""
+        """Background 1媛쒕? ?ы븿??Faster R-CNN 異쒕젰 Class ??"""
         return self.num_defect_classes + 1
 
     @property
@@ -1711,6 +1581,8 @@ class DetectionModelConfig:
     @property
     def index_to_class(self) -> dict[int, str]:
         return build_detection_label_maps(self.defect_class_names)[1]
+
+
 ====================================================================================================
 FILE: .\tests\test_prediction_api.py
 ====================================================================================================
@@ -1932,6 +1804,8 @@ def test_internal_failure_does_not_expose_path_or_stack_trace() -> None:
     assert "kflow" not in response.text
     assert "resnet18_transfer_best.pt" not in response.text
     assert "Traceback" not in response.text
+
+
 ====================================================================================================
 FILE: .\tests\test_inference_service.py
 ====================================================================================================
@@ -2096,6 +1970,8 @@ def test_threshold_configuration_must_be_finite() -> None:
             transform=_transform,
             settings=ApiSettings(classification_threshold=math.nan),
         )
+
+
 ====================================================================================================
 FILE: .\tests\test_api_image_validation.py
 ====================================================================================================
@@ -2274,6 +2150,8 @@ def test_pixel_limit_is_enforced() -> None:
 
     assert exc_info.value.code == "IMAGE_TOO_LARGE"
     assert exc_info.value.status_code == 413
+
+
 ====================================================================================================
 FILE: .\tests\test_api_model_loader.py
 ====================================================================================================
@@ -2347,3 +2225,5 @@ def test_production_loader_rejects_missing_checkpoint(tmp_path: Path) -> None:
                 checkpoint_path=tmp_path / "missing.pt",
             )
         )
+
+

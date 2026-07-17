@@ -1,0 +1,96 @@
+{
+  "schema_version": 2,
+  "generated_at_utc": "2026-07-17T11:12:52.532282+00:00",
+  "project": {
+    "name": "Manufacturing Vision Defect Analysis System",
+    "name_ko": "제조 비전 결함 분석 시스템"
+  },
+  "status": "PASS",
+  "evidence": {
+    "status": "PASS",
+    "evidence_status": "PASS",
+    "inspection_status": "PASS",
+    "context_rebuild_status": "PASS",
+    "expected_endpoints": {
+      "GET /api/v1/health": true,
+      "POST /api/v1/predictions": true,
+      "POST /api/v1/detection/predictions": true
+    },
+    "manual_browser_check_status": "not_recorded",
+    "numeric_validation": {
+      "status": "PASS",
+      "artifact_count": 4,
+      "artifacts": [
+        {
+          "path": "reports/artifacts/day4_resnet18_test_evaluation.json",
+          "expected_numeric_count": 8,
+          "all_values_found": true
+        },
+        {
+          "path": "reports/artifacts/day12_detection_evaluation.json",
+          "expected_numeric_count": 14,
+          "all_values_found": true
+        },
+        {
+          "path": "reports/artifacts/day12_detection_failure_analysis.json",
+          "expected_numeric_count": 9,
+          "all_values_found": true
+        },
+        {
+          "path": "reports/artifacts/day13_detection_integration_summary.json",
+          "expected_numeric_count": 4,
+          "all_values_found": true
+        }
+      ]
+    },
+    "checkpoints": {
+      "classification": "models/checkpoints/resnet18_transfer_best.pt",
+      "detection": "models/detection/day12_detection_best.pt"
+    }
+  },
+  "tests": {
+    "targeted_test_count": 69,
+    "regression_test_count": 1737,
+    "warning_count": 1,
+    "runtime_seconds": 100.56
+  },
+  "performance": {
+    "classification": {
+      "accuracy": 0.9734,
+      "precision": 0.9717,
+      "recall": 0.9868,
+      "f1": 0.9792,
+      "confusion_matrix": {
+        "tn": 249,
+        "fp": 13,
+        "fn": 6,
+        "tp": 447
+      }
+    },
+    "detection": {
+      "precision": 0.81295,
+      "recall": 0.526807,
+      "f1": 0.639321,
+      "mean_matched_iou": 0.752338,
+      "map_50": 0.707726,
+      "project_ap_50_95": 0.310533,
+      "project_ap_note": "Project all-point interpolation metric; not claimed as official COCOeval."
+    }
+  },
+  "manual_browser_check_status": "not_recorded",
+  "outputs": {
+    "readme": "README.md",
+    "report": "reports/day14_final_integration_portfolio_interview_summary.md",
+    "summary": "reports/artifacts/day14_final_integration_summary.json",
+    "readme_backup": "reports/artifacts/backups/README.md.before_day14_final_docs"
+  },
+  "write_policy": {
+    "application_source_modified": false,
+    "checkpoint_modified": false,
+    "training_executed": false,
+    "inference_executed": false,
+    "readme_modified": true,
+    "report_created": true,
+    "summary_created": true
+  }
+}

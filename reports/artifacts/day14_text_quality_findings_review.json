@@ -1,0 +1,175 @@
+﻿{
+    "schema_version":  1,
+    "source_artifact":  "reports/artifacts/day14_final_integration_prerequisites_inspection.json",
+    "finding_count":  20,
+    "category_summary":  [
+                             {
+                                 "category":  "metric_overclaim",
+                                 "count":  3
+                             },
+                             {
+                                 "category":  "opencv_detection_confusion",
+                                 "count":  4
+                             },
+                             {
+                                 "category":  "possible_mojibake",
+                                 "count":  5
+                             },
+                             {
+                                 "category":  "prediction_ground_truth_confusion",
+                                 "count":  3
+                             },
+                             {
+                                 "category":  "production_validation_overclaim",
+                                 "count":  5
+                             }
+                         ],
+    "file_summary":  [
+                         {
+                             "file":  "scripts/inspect_day14_final_integration_prerequisites.py",
+                             "count":  20
+                         }
+                     ],
+    "findings":  [
+                     {
+                         "file":  "scripts/inspect_day14_final_integration_prerequisites.py",
+                         "category":  "production_validation_overclaim",
+                         "line":  62,
+                         "matched":  "실제 생산 환경에서 검증 완료",
+                         "text":  "\"실제 생산 환경에서 검증 완료\","
+                     },
+                     {
+                         "file":  "scripts/inspect_day14_final_integration_prerequisites.py",
+                         "category":  "production_validation_overclaim",
+                         "line":  63,
+                         "matched":  "산업 현장 배포 완료",
+                         "text":  "\"산업 현장 배포 완료\","
+                     },
+                     {
+                         "file":  "scripts/inspect_day14_final_integration_prerequisites.py",
+                         "category":  "production_validation_overclaim",
+                         "line":  64,
+                         "matched":  "실시간 생산 시스템 구축",
+                         "text":  "\"실시간 생산 시스템 구축\","
+                     },
+                     {
+                         "file":  "scripts/inspect_day14_final_integration_prerequisites.py",
+                         "category":  "production_validation_overclaim",
+                         "line":  65,
+                         "matched":  "production environment validated",
+                         "text":  "\"production environment validated\","
+                     },
+                     {
+                         "file":  "scripts/inspect_day14_final_integration_prerequisites.py",
+                         "category":  "production_validation_overclaim",
+                         "line":  66,
+                         "matched":  "deployed to production",
+                         "text":  "\"deployed to production\","
+                     },
+                     {
+                         "file":  "scripts/inspect_day14_final_integration_prerequisites.py",
+                         "category":  "metric_overclaim",
+                         "line":  69,
+                         "matched":  "COCO 공식 mAP와 완전히 동일",
+                         "text":  "\"COCO 공식 mAP와 완전히 동일\","
+                     },
+                     {
+                         "file":  "scripts/inspect_day14_final_integration_prerequisites.py",
+                         "category":  "metric_overclaim",
+                         "line":  70,
+                         "matched":  "official COCO mAP",
+                         "text":  "\"official COCO mAP\","
+                     },
+                     {
+                         "file":  "scripts/inspect_day14_final_integration_prerequisites.py",
+                         "category":  "metric_overclaim",
+                         "line":  71,
+                         "matched":  "identical to COCOeval",
+                         "text":  "\"identical to COCOeval\","
+                     },
+                     {
+                         "file":  "scripts/inspect_day14_final_integration_prerequisites.py",
+                         "category":  "opencv_detection_confusion",
+                         "line":  74,
+                         "matched":  "OpenCV Contour가 실제 결함 위치",
+                         "text":  "\"OpenCV Contour가 실제 결함 위치\","
+                     },
+                     {
+                         "file":  "scripts/inspect_day14_final_integration_prerequisites.py",
+                         "category":  "opencv_detection_confusion",
+                         "line":  75,
+                         "matched":  "Contour는 실제 결함 위치",
+                         "text":  "\"Contour는 실제 결함 위치\","
+                     },
+                     {
+                         "file":  "scripts/inspect_day14_final_integration_prerequisites.py",
+                         "category":  "opencv_detection_confusion",
+                         "line":  76,
+                         "matched":  "Contour is the ground truth",
+                         "text":  "\"Contour is the ground truth\","
+                     },
+                     {
+                         "file":  "scripts/inspect_day14_final_integration_prerequisites.py",
+                         "category":  "opencv_detection_confusion",
+                         "line":  77,
+                         "matched":  "Contour is a detection prediction",
+                         "text":  "\"Contour is a detection prediction\","
+                     },
+                     {
+                         "file":  "scripts/inspect_day14_final_integration_prerequisites.py",
+                         "category":  "prediction_ground_truth_confusion",
+                         "line":  80,
+                         "matched":  "Detection Prediction이 Ground Truth",
+                         "text":  "\"Detection Prediction이 Ground Truth\","
+                     },
+                     {
+                         "file":  "scripts/inspect_day14_final_integration_prerequisites.py",
+                         "category":  "prediction_ground_truth_confusion",
+                         "line":  81,
+                         "matched":  "Prediction is ground truth",
+                         "text":  "\"Prediction is ground truth\","
+                     },
+                     {
+                         "file":  "scripts/inspect_day14_final_integration_prerequisites.py",
+                         "category":  "prediction_ground_truth_confusion",
+                         "line":  82,
+                         "matched":  "prediction equals ground truth",
+                         "text":  "\"prediction equals ground truth\","
+                     },
+                     {
+                         "file":  "scripts/inspect_day14_final_integration_prerequisites.py",
+                         "category":  "possible_mojibake",
+                         "line":  88,
+                         "matched":  "媛",
+                         "text":  "\"媛\","
+                     },
+                     {
+                         "file":  "scripts/inspect_day14_final_integration_prerequisites.py",
+                         "category":  "possible_mojibake",
+                         "line":  89,
+                         "matched":  "吏",
+                         "text":  "\"吏\","
+                     },
+                     {
+                         "file":  "scripts/inspect_day14_final_integration_prerequisites.py",
+                         "category":  "possible_mojibake",
+                         "line":  90,
+                         "matched":  "쒖",
+                         "text":  "\"쒖\","
+                     },
+                     {
+                         "file":  "scripts/inspect_day14_final_integration_prerequisites.py",
+                         "category":  "possible_mojibake",
+                         "line":  91,
+                         "matched":  "湲",
+                         "text":  "\"湲\","
+                     },
+                     {
+                         "file":  "scripts/inspect_day14_final_integration_prerequisites.py",
+                         "category":  "possible_mojibake",
+                         "line":  92,
+                         "matched":  "怨",
+                         "text":  "\"怨\","
+                     }
+                 ]
+}

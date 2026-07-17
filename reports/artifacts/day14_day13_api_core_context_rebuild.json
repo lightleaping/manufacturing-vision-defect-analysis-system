@@ -1,0 +1,112 @@
+{
+  "schema_version": 1,
+  "generated_at_utc": "2026-07-17T10:05:58.023436+00:00",
+  "project_root": "C:\\Users\\kflow\\Downloads\\manufacturing-vision-defect-analysis-system",
+  "target_path": "reports/artifacts/day13_api_core_context.txt",
+  "summary_path": "reports/artifacts/day14_day13_api_core_context_rebuild.json",
+  "dry_run": false,
+  "status": "PASS",
+  "strategy": "Extract ordered FILE headers from the damaged artifact and rebuild it from current UTF-8 source files.",
+  "source_file_count": 13,
+  "sources": [
+    {
+      "path": "src/api/app.py",
+      "header": ".\\src\\api\\app.py",
+      "size_bytes": 9839,
+      "sha256": "5b5aea32986bb41258cb33eeef82c869da3c9a252d46e8a31816d2d12017c0ce"
+    },
+    {
+      "path": "src/api/config.py",
+      "header": ".\\src\\api\\config.py",
+      "size_bytes": 1330,
+      "sha256": "1609be15e80e49361b3626274eeffdd56dd18b6f804eaaa097941c8a8be8ead1"
+    },
+    {
+      "path": "src/api/schemas.py",
+      "header": ".\\src\\api\\schemas.py",
+      "size_bytes": 2348,
+      "sha256": "b18110e71e8ef2bf2578b5aa53e92b252e0197f28ce18671735bd22c71d416cf"
+    },
+    {
+      "path": "src/api/image_validation.py",
+      "header": ".\\src\\api\\image_validation.py",
+      "size_bytes": 8655,
+      "sha256": "32dd313c3734a383a2261b74ef6e95f96e9d78d02198ca80a798c4713a3ae0d8"
+    },
+    {
+      "path": "src/api/model_loader.py",
+      "header": ".\\src\\api\\model_loader.py",
+      "size_bytes": 1522,
+      "sha256": "d22d138e669e65631d1bfc093c5f4c188c394e2e1b94125dcfee1643f6b96fde"
+    },
+    {
+      "path": "src/api/inference_service.py",
+      "header": ".\\src\\api\\inference_service.py",
+      "size_bytes": 6525,
+      "sha256": "ee0d6a78a13ed6a0c403d0178428b748244a9d8f47247de4809719f2dfbaae16"
+    },
+    {
+      "path": "src/detection/checkpoint.py",
+      "header": ".\\src\\detection\\checkpoint.py",
+      "size_bytes": 10853,
+      "sha256": "249d8b28e33cbcca04a14cebf986071da05ca4686f7a134b7068cbc22fa61028"
+    },
+    {
+      "path": "src/detection/model_factory.py",
+      "header": ".\\src\\detection\\model_factory.py",
+      "size_bytes": 8647,
+      "sha256": "fc7794fa1336240f4ab555d7e869a5deb6a3aa9996c1b2708bf503ae271ad12f"
+    },
+    {
+      "path": "src/detection/model_config.py",
+      "header": ".\\src\\detection\\model_config.py",
+      "size_bytes": 7507,
+      "sha256": "41714d16ce2d91583ff459e536b037e50079fd53dd81754b74ce66080198e165"
+    },
+    {
+      "path": "tests/test_prediction_api.py",
+      "header": ".\\tests\\test_prediction_api.py",
+      "size_bytes": 6996,
+      "sha256": "20527ea46d44e6485e82b7bea428a09c22e31987384e18edb3add9616f1ad365"
+    },
+    {
+      "path": "tests/test_inference_service.py",
+      "header": ".\\tests\\test_inference_service.py",
+      "size_bytes": 4814,
+      "sha256": "c2657056b9a5074e953b00ab3af8bb89c0602bec71c2d2972636cc47d40c978c"
+    },
+    {
+      "path": "tests/test_api_image_validation.py",
+      "header": ".\\tests\\test_api_image_validation.py",
+      "size_bytes": 4903,
+      "sha256": "dd2d4f88e6f1a952c3fbb53e704aad38fb2ce8fb8584dc255332f944762362b3"
+    },
+    {
+      "path": "tests/test_api_model_loader.py",
+      "header": ".\\tests\\test_api_model_loader.py",
+      "size_bytes": 2197,
+      "sha256": "27edfdf4dc1f9e7decd332bba3513b226a535269a580f7aebe00b315873c5cee"
+    }
+  ],
+  "original": {
+    "size_bytes": 75275,
+    "sha256": "77032c0f502c3bb8609a23f3ceda266303335191803ee46b2655d5ec24a9eb11",
+    "mojibake_tokens": [
+      "媛",
+      "怨",
+      "湲",
+      "쒖",
+      "쨌",
+      "吏"
+    ]
+  },
+  "rebuilt": {
+    "size_bytes": 79215,
+    "sha256": "595a5f4dbf8d12ee83d682b8c8f4ad5b94c481fb0128213e7fdf27e40c8b9368",
+    "mojibake_tokens": [],
+    "utf8_bom": false
+  },
+  "backup_path": "reports/artifacts/backups/day13_api_core_context.before_utf8_rebuild.77032c0f502c.txt",
+  "target_modified": true,
+  "source_files_modified": false
+}
