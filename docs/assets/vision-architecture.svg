@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="470" viewBox="0 0 1200 470">
+<rect width="100%" height="100%" rx="28" fill="#F8FAFC"/>
+<style>.title{font:700 30px Arial,"Noto Sans KR",sans-serif;fill:#0F172A}.subtitle{font:400 17px Arial,"Noto Sans KR",sans-serif;fill:#475569}.head{font:700 18px Arial,"Noto Sans KR",sans-serif;fill:#FFFFFF}.body{font:600 16px Arial,"Noto Sans KR",sans-serif;fill:#0F172A}.small{font:400 14px Arial,"Noto Sans KR",sans-serif;fill:#475569}</style>
+<text x="50" y="52" class="title">제조 표면 결함 Vision AI</text>
+<text x="50" y="82" class="subtitle">목적이 다른 분류·보조 분석·객체 탐지를 분리하고 API로 연결</text>
+<rect x="50.0" y="120" width="252.5" height="290" rx="18" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="2"/>
+<rect x="50.0" y="120" width="252.5" height="54" rx="18" fill="#2563EB"/>
+<rect x="50.0" y="155" width="252.5" height="19" fill="#2563EB"/>
+<text x="70.0" y="153" class="head">CLASSIFICATION</text>
+<text x="70.0" y="208" class="body">전체 품질 상태</text>
+<text x="70.0" y="243" class="small">Casting Images</text>
+<text x="70.0" y="271" class="small">CNN → ResNet18</text>
+<text x="70.0" y="299" class="small">NORMAL / DEFECT</text>
+<path d="M 307.5 270 L 327.5 270" stroke="#475569" stroke-width="3"/>
+<path d="M 319.5 263 L 327.5 270 L 319.5 277" fill="none" stroke="#475569" stroke-width="3"/>
+<rect x="332.5" y="120" width="252.5" height="290" rx="18" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="2"/>
+<rect x="332.5" y="120" width="252.5" height="54" rx="18" fill="#0F766E"/>
+<rect x="332.5" y="155" width="252.5" height="19" fill="#0F766E"/>
+<text x="352.5" y="153" class="head">OPENCV</text>
+<text x="352.5" y="208" class="body">보조 이미지 분석</text>
+<text x="352.5" y="243" class="small">Histogram · Edge</text>
+<text x="352.5" y="271" class="small">Threshold · Morphology</text>
+<text x="352.5" y="299" class="small">Contour Candidates</text>
+<path d="M 590.0 270 L 610.0 270" stroke="#475569" stroke-width="3"/>
+<path d="M 602.0 263 L 610.0 270 L 602.0 277" fill="none" stroke="#475569" stroke-width="3"/>
+<rect x="615.0" y="120" width="252.5" height="290" rx="18" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="2"/>
+<rect x="615.0" y="120" width="252.5" height="54" rx="18" fill="#0F172A"/>
+<rect x="615.0" y="155" width="252.5" height="19" fill="#0F172A"/>
+<text x="635.0" y="153" class="head">DETECTION</text>
+<text x="635.0" y="208" class="body">결함 종류·위치</text>
+<text x="635.0" y="243" class="small">NEU-DET · VOC</text>
+<text x="635.0" y="271" class="small">Faster R-CNN</text>
+<text x="635.0" y="299" class="small">Class · Score · Box</text>
+<path d="M 872.5 270 L 892.5 270" stroke="#475569" stroke-width="3"/>
+<path d="M 884.5 263 L 892.5 270 L 884.5 277" fill="none" stroke="#475569" stroke-width="3"/>
+<rect x="897.5" y="120" width="252.5" height="290" rx="18" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="2"/>
+<rect x="897.5" y="120" width="252.5" height="54" rx="18" fill="#D97706"/>
+<rect x="897.5" y="155" width="252.5" height="19" fill="#D97706"/>
+<text x="917.5" y="153" class="head">SERVICE</text>
+<text x="917.5" y="208" class="body">추론 서비스</text>
+<text x="917.5" y="243" class="small">FastAPI Lifespan</text>
+<text x="917.5" y="271" class="small">Streamlit API Client</text>
+<text x="917.5" y="299" class="small">1,737 Tests</text>
+</svg>
