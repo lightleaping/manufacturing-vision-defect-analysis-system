@@ -132,21 +132,27 @@
 
 > 불량을 정상으로 판단하는 False Negative 6개를 별도로 확인하고, 예측 확률과 이미지 패턴을 검토했습니다. 원본 사례 이미지는 `reports/figures/day5_resnet18_false_negatives.png`에 보관합니다.
 
+### Grad-CAM Review
+
+| 항목 | 내용 |
+|---|---|
+| **대상 모델** | ResNet18 Transfer Learning |
+| **대상 Layer** | `resnet18.layer4.1.conv2` |
+| **확인 목적** | 모델이 입력 이미지의 어느 영역에 상대적으로 반응하는지 확인 |
+| **사용 범위** | 오분류 사례와 정상·불량 예측 사례의 반응 영역 비교 |
+| **해석 기준** | 모델 반응 영역을 확인하는 보조 분석이며, 결함 위치의 Ground Truth로 사용하지 않음 |
+
+> 원본 Grad-CAM 결과 이미지는 `reports/figures/day6_resnet18_gradcam_overview.png`에 보관합니다. README 상단에서는 이미지 로딩 실패가 문서 전체 레이아웃에 영향을 주지 않도록 요약 표로 표시합니다.
+
 <table>
   <tr>
-    <td width="50%" align="center">
-      <b>Grad-CAM</b><br><br>
-      <img src="./reports/figures/day6_resnet18_gradcam_overview.png" alt="ResNet18 Grad-CAM" width="100%">
-    </td>
     <td width="50%" align="center">
       <b>Detection Predictions</b><br><br>
       <img src="./reports/figures/day12_detection_predictions.png" alt="객체 탐지 예측 결과" width="100%">
     </td>
-  </tr>
-  <tr>
-    <td colspan="2" align="center">
+    <td width="50%" align="center">
       <b>Detection Failure Analysis</b><br><br>
-      <img src="./reports/figures/day12_detection_failure_analysis.png" alt="객체 탐지 실패 사례 분석" width="82%">
+      <img src="./reports/figures/day12_detection_failure_analysis.png" alt="객체 탐지 실패 사례 분석" width="100%">
     </td>
   </tr>
 </table>
