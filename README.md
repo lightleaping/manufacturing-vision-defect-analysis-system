@@ -50,7 +50,7 @@
 
 ## System Overview
 
-<img src="./docs/assets/vision-system-overview.svg" alt="제조 표면 결함 Vision AI 시스템 구성도" width="100%">
+<img src="./docs/assets/vision-system-overview.png" alt="제조 표면 결함 Vision AI 시스템 구성도" width="100%">
 
 | Flow | Output |
 |---|---|
@@ -122,30 +122,35 @@
 
 ## Visual Evidence
 
+### Classification Error Summary
+
+| Error Type | Actual | Predicted | Count |
+|---|---|---|---:|
+| **False Negative** | DEFECT | NORMAL | **6** |
+| False Positive | NORMAL | DEFECT | 13 |
+| **Total Errors** |  |  | **19 / 715** |
+
+> 불량을 정상으로 판단하는 False Negative 6개를 별도로 확인하고, 예측 확률과 이미지 패턴을 검토했습니다. 원본 사례 이미지는 `reports/figures/day5_resnet18_false_negatives.png`에 보관합니다.
+
 <table>
   <tr>
-    <td width="50%" align="center">
-      <b>Classification False Negative Analysis</b><br><br>
-      <img src="./reports/figures/day5_resnet18_false_negatives.png" alt="ResNet18 False Negative 분석" width="100%">
-    </td>
     <td width="50%" align="center">
       <b>Grad-CAM</b><br><br>
       <img src="./reports/figures/day6_resnet18_gradcam_overview.png" alt="ResNet18 Grad-CAM" width="100%">
     </td>
-  </tr>
-  <tr>
     <td width="50%" align="center">
       <b>Detection Predictions</b><br><br>
       <img src="./reports/figures/day12_detection_predictions.png" alt="객체 탐지 예측 결과" width="100%">
     </td>
-    <td width="50%" align="center">
+  </tr>
+  <tr>
+    <td colspan="2" align="center">
       <b>Detection Failure Analysis</b><br><br>
-      <img src="./reports/figures/day12_detection_failure_analysis.png" alt="객체 탐지 실패 사례 분석" width="100%">
+      <img src="./reports/figures/day12_detection_failure_analysis.png" alt="객체 탐지 실패 사례 분석" width="82%">
     </td>
   </tr>
 </table>
 
-> 전체 오분류는 False Positive 13개와 False Negative 6개로 집계했으며, 상단에는 제조 품질 판정에서 우선 확인할 필요가 있는 False Negative 사례를 표시했습니다.
 
 ---
 
