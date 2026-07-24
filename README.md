@@ -1,5 +1,7 @@
 # 제조 표면 결함 Vision AI
 
+**Surface Defect Classification, Detection, Failure Analysis, and Inference API**
+
 > 제조 이미지의 정상·불량 분류와 표면 결함 객체 탐지를 구현하고, 모델 평가와 실패 사례 분석을 FastAPI·Streamlit 사용자 흐름까지 연결한 Vision AI 프로젝트입니다.
 
 <p>
@@ -11,6 +13,17 @@
 </p>
 
 ---
+
+## Why This Project
+
+제조 이미지 검사에서 필요한 판단은 한 가지가 아닙니다. 제품 전체가 정상인지 불량인지 빠르게 판정해야 하고, 불량이라면 어떤 결함이 어디에 있는지도 확인해야 합니다. 분류 모델은 제품 단위 판정에 적합하지만 위치를 제공하지 않으며, 객체 탐지 모델은 결함의 종류와 Bounding Box를 제공할 수 있습니다.
+
+또한 높은 Accuracy 하나만으로는 실제 불량 누락, 불필요한 불량 판정, 위치 오류를 구분하기 어렵습니다. 따라서 이 프로젝트는 다음 목표로 구성했습니다.
+
+1. 이미지 전체의 정상·불량을 분류한다.
+2. 6개 표면 결함의 종류와 위치를 탐지한다.
+3. False Negative, False Positive, 위치 오류와 Class 혼동을 따로 분석한다.
+4. 모델 결과를 FastAPI와 Streamlit 입력·응답 흐름으로 연결한다.
 
 ## Project Overview
 
@@ -37,30 +50,14 @@
 
 ## System Overview
 
-```mermaid
-flowchart LR
-    U[User]
-    S[Streamlit]
-    A[FastAPI]
+<img src="./docs/assets/vision-system-overview.svg" alt="제조 표면 결함 Vision AI 시스템 구성도" width="100%">
 
-    C[ResNet18<br/>Classification]
-    D[Faster R-CNN<br/>Detection]
-
-    R1[Prediction<br/>Probability]
-    R2[Class<br/>Score<br/>Box]
-
-    U --> S --> A
-    A --> C --> R1 --> S
-    A --> D --> R2 --> S
-```
-
-| 단계 | 내용 |
+| Flow | Output |
 |---|---|
-| **입력** | 사용자가 Streamlit에서 이미지를 업로드 |
-| **요청** | Streamlit이 분류 또는 객체 탐지 API를 호출 |
-| **추론** | FastAPI가 로드된 ResNet18 또는 Faster R-CNN으로 추론 |
-| **응답** | 분류는 Prediction·Probability, 탐지는 Class·Score·Box를 반환 |
-| **표시** | Streamlit이 예측 결과 또는 탐지 Overlay를 화면에 표시 |
+| **Classification** | NORMAL 또는 DEFECT, Defect Probability |
+| **Object Detection** | 결함 Class, Confidence Score, Bounding Box |
+| **Service** | FastAPI JSON Response와 Streamlit Result 또는 Overlay |
+
 
 ### Design Decisions
 
@@ -71,6 +68,22 @@ flowchart LR
 - **Grad-CAM은 설명 보조**: 모델 반응 영역을 확인하는 시각화 도구로 사용했습니다.
 
 ---
+
+## Practical Evaluation Criteria
+
+제조 Vision 모델에도 모든 현장에 공통인 단일 합격 수치는 없습니다. 제품 단가, 결함 심각도, 검사 속도, 수동 재검사 절차에 따라 기준이 달라집니다. 다만 다음 평가 축은 실제 검사 의사결정과 직접 연결됩니다.
+
+| 실무 관점 | 평가 기준 | 프로젝트에서 확인한 근거 |
+|---|---|---|
+| **불량 누락 감소** | DEFECT Recall, False Negative | Classification Recall **98.68%**, FN **6** |
+| **불필요한 불량 판정 관리** | Precision, False Positive, Confusion Matrix | Classification Precision **97.17%**, FP **13** |
+| **결함 탐지 범위** | Detection Recall, Missed Detection | Detection Recall **52.68%**, 누락 사례를 별도 Failure Type으로 분석 |
+| **탐지 신뢰도** | Precision, mAP | Detection Precision **81.30%**, mAP@0.50 **0.7077** |
+| **위치 정확성** | IoU, Localization Error | Mean Matched IoU **0.7523**, 위치 오류 사례 분리 |
+| **실패 원인 확인** | FP, FN, Localization, Duplicate, Class Confusion | 객체 탐지 실패 유형 **5종** 정리 |
+| **서비스 연결성** | 입력 검증, API Response, UI 표시, Regression Test | FastAPI Endpoint **3/3 PASS**, 1,737개 회귀 테스트 |
+
+> Classification은 제품 단위 불량 판정에서 높은 Recall과 F1을 확인했고, Detection은 Precision과 위치 IoU를 확인하면서 결함 누락을 다음 개선 우선순위로 구체화했습니다. 실제 생산 적용 기준은 결함별 위험도, 처리 속도와 재검사 비용을 반영해 정해야 합니다.
 
 ## Key Results
 
@@ -441,6 +454,16 @@ manufacturing-vision-defect-analysis-system/
 - Accuracy뿐 아니라 Recall, F1, mAP, IoU와 실제 실패 사례를 함께 분석한 경험
 - PyTorch 모델을 FastAPI와 Streamlit 사용자 흐름으로 연결한 경험
 - 모델, API, Dashboard를 테스트하고 결과를 문서화한 경험
+
+---
+
+## References
+
+- [NIST — Manufacturing quality evaluation and false-positive / false-negative implications](https://nvlpubs.nist.gov/nistpubs/ams/NIST.AMS.100-72.pdf)
+- [scikit-learn — Precision, Recall, F1, and Confusion Matrix](https://scikit-learn.org/stable/modules/model_evaluation.html)
+- [Microsoft COCO — Common Objects in Context](https://arxiv.org/abs/1405.0312)
+- [Generalized Intersection over Union — IoU as an object-detection localization metric](https://arxiv.org/abs/1902.09630)
+- [Localization Recall Precision — localization, false-negative, and false-positive components](https://arxiv.org/abs/1807.01696)
 
 ---
 
