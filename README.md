@@ -1,252 +1,185 @@
-﻿# 제조 표면 결함 Vision AI
+# 제조 표면 결함 Vision AI
 
-**저장소 ID:** `manufacturing-vision-defect-analysis-system`
-
-> **제조 이미지의 정상·불량 분류와 표면 결함 객체 탐지를
-> 데이터 분석부터 PyTorch 모델, 실패 분석, FastAPI, Streamlit까지 연결한 Vision AI 프로젝트**
+> 제조 이미지의 정상·불량 분류와 표면 결함 객체 탐지를 구현하고, 모델 평가와 실패 사례 분석을 FastAPI·Streamlit 사용자 흐름까지 연결한 Vision AI 프로젝트입니다.
 
 <p>
-  <img src="https://img.shields.io/badge/Domain-Manufacturing%20Vision-0F766E?style=flat-square" alt="Manufacturing Vision">
-  <img src="https://img.shields.io/badge/Model-ResNet18%20%7C%20Faster%20R--CNN-2563EB?style=flat-square" alt="Models">
-  <img src="https://img.shields.io/badge/API-FastAPI-009688?style=flat-square" alt="FastAPI">
-  <img src="https://img.shields.io/badge/Test-1737%20passed-0A9EDC?style=flat-square" alt="Tests">
+  <img src="https://img.shields.io/badge/Python-3.11-3561D8?style=flat-square&logo=python&logoColor=white" alt="Python">
+  <img src="https://img.shields.io/badge/PyTorch-2.12-21AFC4?style=flat-square&logo=pytorch&logoColor=white" alt="PyTorch">
+  <img src="https://img.shields.io/badge/Vision-Classification%20%7C%20Detection-151F32?style=flat-square" alt="Vision Classification and Detection">
+  <img src="https://img.shields.io/badge/FastAPI-Inference%20API-3561D8?style=flat-square&logo=fastapi&logoColor=white" alt="FastAPI">
+  <img src="https://img.shields.io/badge/Tests-1737%20passed-21AFC4?style=flat-square" alt="Tests">
 </p>
 
-<p align="center">
-  <img src="./docs/assets/vision-architecture.svg" alt="제조 표면 결함 Vision AI 시스템 구성도" width="100%">
-</p>
-
-[Profile](https://github.com/lightleaping) · [API](#7-api--dashboard-integration) · [Run](#10-how-to-run) · [Limitations](#12-limitations--next-steps)
+<img src="./docs/assets/vision-architecture.svg" alt="제조 표면 결함 Vision AI 시스템 구성도" width="100%">
 
 ---
 
-## Recruiter Summary
+## Recruiter Overview
 
-| 구분 | 내용 |
+| 항목 | 내용 |
 |---|---|
-| 기간 | **2026.07 · 14일 범위로 기획·구현·검증** |
-| 형태 | 개인 프로젝트 · 1인 개발 |
-| 목적 | 제조 이미지의 **전체 품질 상태**와 **개별 결함 종류·위치**를 서로 다른 모델로 분석 |
-| 범위 | 데이터 분석 → 분류 → OpenCV 보조 분석 → 객체 탐지 → 실패 분석 → FastAPI → Streamlit |
-| 내 역할 | 기획·데이터 분석·모델 개발·평가·시각화·API·Dashboard·테스트·문서화 전반 |
-| 핵심 기술 | Python, PyTorch, torchvision, OpenCV, scikit-learn, FastAPI, Streamlit, pytest |
+| **프로젝트 기간** | 2026.07 |
+| **프로젝트 형태** | 개인 프로젝트 |
+| **해결 문제** | 이미지 전체의 정상·불량 상태와 개별 표면 결함의 종류·위치를 서로 다른 모델로 분석 |
+| **프로젝트 범위** | 이미지 데이터 분석, 분류 모델, 객체 탐지 모델, OpenCV 보조 분석, 성능 평가, 실패 사례 분석, FastAPI, Streamlit, 테스트, 문서화 |
+| **핵심 기술** | Python, PyTorch, torchvision, ResNet18, Faster R-CNN, OpenCV, scikit-learn, FastAPI, Streamlit, pytest |
+| **대표 결과** | DEFECT-class F1 97.92%, Detection mAP@0.50 0.7077, FastAPI Endpoint 3/3 PASS |
 
 ---
 
-## Problem → Action → Evaluation
+## Problem → Solution → Evaluation
 
-| Problem · 왜 필요한가 | Action · 어떻게 해결했는가 | Evaluation · 무엇으로 검증했는가 |
+| Problem | Solution | Evaluation |
 |---|---|---|
-| 육안 검사만으로는 일관된 기준 유지가 어렵고, 전체 불량 여부만으로는 결함의 종류·위치를 알 수 없음 | ResNet18 분류와 Faster R-CNN 객체 탐지를 목적별 별도 파이프라인으로 구현 | Accuracy·Precision·Recall·F1·Confusion Matrix·mAP·IoU |
-| 높은 전체 성능만으로 실제 실패 유형을 알기 어려움 | 분류 FP/FN과 검출 누락·위치 오류·중복·클래스 혼동을 수집·분석 | 오분류 19개, Detection Failure 5종 |
-| 모델 결과가 Notebook에만 있으면 실제 입력 흐름을 확인하기 어려움 | 모델을 FastAPI에서 로드하고 Streamlit이 HTTP API를 호출하도록 분리 | Endpoint·Schema·HTTP·Dashboard·회귀 테스트 |
+| 이미지 전체의 불량 여부만으로는 개별 결함의 종류와 위치를 알기 어려움 | ResNet18 분류와 Faster R-CNN 객체 탐지를 목적별 파이프라인으로 분리 | Accuracy, Precision, Recall, F1, Confusion Matrix, mAP@0.50, IoU |
+| 전체 성능 수치만으로는 모델이 어떤 사례에서 실패하는지 확인하기 어려움 | 분류 오분류와 객체 탐지 실패 사례를 유형별로 수집하고 시각화 | 분류 오분류 19개, 객체 탐지 실패 유형 5종 |
+| 모델 결과가 학습 코드에만 머물면 실제 입력·응답 흐름을 확인하기 어려움 | FastAPI가 모델을 로드하고 Streamlit이 HTTP API로 결과를 요청하도록 구성 | Endpoint, Schema, HTTP Integration, Dashboard, Regression Test |
 
 ---
 
-## 1. Why This Project
-
-제조 품질 검사에서는 다음 질문이 서로 다릅니다.
-
-1. **이미지 전체가 정상인가, 불량인가?**
-2. **모델이 어떤 영역에 상대적으로 반응했는가?**
-3. **어떤 결함이 어느 위치에 존재하는가?**
-4. **모델 결과를 API와 사용자 화면에서 일관되게 제공할 수 있는가?**
-
-하나의 모델이 모든 질문에 답하도록 과장하지 않고 역할을 분리했습니다.
-
-| Pipeline | 역할 | 데이터 | 출력 |
-|---|---|---|---|
-| Classification | 이미지 전체 정상·불량 판정 | Casting Product Image Data | `NORMAL` / `DEFECT`, probability |
-| OpenCV Analysis | 명암·경계·형태 특성 보조 분석 | Manufacturing Image | histogram, edge, threshold, morphology, contour candidates |
-| Object Detection | 개별 결함 종류와 위치 탐지 | NEU Surface Defect | class, score, bounding box |
-
-> OpenCV Contour는 Threshold와 Morphology에서 얻은 **후보 영역**이며, 정답 결함 위치나 Detection 결과로 취급하지 않습니다.
-> Grad-CAM 역시 모델이 상대적으로 사용한 영역을 보는 **설명 보조 수단**이며, 실제 결함 위치의 정답 Mask가 아닙니다.
-
----
-
-## 2. Key Results
+## Key Results
 
 ### Classification
 
-| Metric | CNN Baseline | ResNet18 Transfer | Improvement |
-|---|---:|---:|---:|
-| Accuracy | 76.92% | **97.34%** | **+20.42%p** |
-| Precision | 82.88% | **97.17%** | **+14.29%p** |
-| Recall | 80.13% | **98.68%** | **+18.54%p** |
-| F1 Score | 81.48% | **97.92%** | **+16.44%p** |
-| False Negative | 90 | **6** | **-84** |
-| Total Errors | 165 | **19** | **-146** |
-
-ResNet18 Test Confusion Matrix:
-
-|  | Predicted NORMAL | Predicted DEFECT |
+| Metric | CNN Baseline | ResNet18 Transfer |
 |---|---:|---:|
-| Actual NORMAL | 249 | 13 |
-| Actual DEFECT | 6 | 447 |
+| Accuracy | 76.92% | **97.34%** |
+| Precision | 82.88% | **97.17%** |
+| Recall | 80.13% | **98.68%** |
+| F1 Score | 81.48% | **97.92%** |
+| False Negative | 90 | **6** |
+| Total Errors | 165 | **19** |
+
+> 분류 지표의 Precision, Recall, F1은 `DEFECT` Class를 기준으로 계산했습니다.
 
 ### Object Detection
 
 | Metric | Test Result |
 |---|---:|
 | Precision | **0.812950** |
-| Recall | **0.526807** |
-| F1 | **0.639321** |
+| Recall | 0.526807 |
+| F1 | 0.639321 |
 | mAP@0.50 | **0.707726** |
 | Mean Matched IoU | **0.752338** |
-| Project AP 0.50:0.95 | **0.310533** |
 
-> `Project AP 0.50:0.95`는 프로젝트 내부 all-point interpolation 구현 결과이며 공식 COCOeval 수치와 동일하게 해석하지 않습니다.
-
-### Verification
+### Service Verification
 
 | Verification | Result |
 |---|---:|
-| FastAPI Endpoints | 3/3 PASS |
+| FastAPI Endpoints | **3/3 PASS** |
 | Full Regression Tests | **1,737 passed** |
-| Warning | 1 existing warning |
 | Test Runtime | 100.56 seconds |
 
 ---
 
-## 3. Visual Results
+## Visual Results
 
-### Classification Failure Analysis
+<table>
+  <tr>
+    <td width="50%" align="center">
+      <b>Classification Failure Analysis</b><br><br>
+      <img src="./reports/figures/day5_resnet18_all_misclassifications.png" alt="ResNet18 오분류 분석" width="100%">
+    </td>
+    <td width="50%" align="center">
+      <b>Grad-CAM</b><br><br>
+      <img src="./reports/figures/day6_resnet18_gradcam_overview.png" alt="ResNet18 Grad-CAM" width="100%">
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center">
+      <b>Detection Predictions</b><br><br>
+      <img src="./reports/figures/day12_detection_predictions.png" alt="객체 탐지 예측 결과" width="100%">
+    </td>
+    <td width="50%" align="center">
+      <b>Detection Failure Analysis</b><br><br>
+      <img src="./reports/figures/day12_detection_failure_analysis.png" alt="객체 탐지 실패 사례 분석" width="100%">
+    </td>
+  </tr>
+</table>
 
-![ResNet18 Misclassification Analysis](reports/figures/day5_resnet18_all_misclassifications.png)
-
-- Test images: 715
-- Correct: 696
-- Misclassified: 19
-- False Positive: 13
-- False Negative: 6
-- Error Rate: 2.66%
-
-### Grad-CAM
-
-![ResNet18 Grad-CAM Overview](reports/figures/day6_resnet18_gradcam_overview.png)
-
-모델 반응 영역이 결함과 관련된 부분에 나타나는지, 배경이나 주변 패턴에 과도하게 의존하는지를 시각적으로 검토했습니다.
-
-### Detection Prediction
-
-![Detection Predictions](reports/figures/day12_detection_predictions.png)
-
-### Detection Failure Analysis
-
-![Detection Failure Analysis](reports/figures/day12_detection_failure_analysis.png)
-
-### Dashboard Overlay
-
-![Detection Dashboard Overlay](reports/figures/day13_detection_dashboard_overlay.png)
+<p align="center">
+  <b>Streamlit Detection Dashboard</b><br><br>
+  <img src="./reports/figures/day13_detection_dashboard_overlay.png" alt="Streamlit 객체 탐지 Dashboard Overlay" width="82%">
+</p>
 
 ---
 
-## 4. System Architecture
+## System Architecture
 
 ```mermaid
 flowchart LR
-    USER[User / Browser]
+    USER[User / Image Upload]
 
-    subgraph UI["Streamlit Dashboard"]
-        C_UI[Classification Page]
-        D_UI[Detection Page]
+    subgraph UI[Streamlit Dashboard]
+        C_UI[Classification]
+        D_UI[Detection]
     end
 
-    subgraph API["FastAPI Inference Layer"]
-        HEALTH[GET /api/v1/health]
-        C_API[POST /api/v1/predictions]
-        D_API[POST /api/v1/detection/predictions]
-        VALIDATE[Image Validation<br/>extension · MIME · decode · size]
-        LIFESPAN[Lifespan Model Loading]
-        LOCK[Process-local Inference Lock]
+    subgraph API[FastAPI Inference Layer]
+        HEALTH[GET /health]
+        C_API[POST /predictions]
+        D_API[POST /detection/predictions]
+        VALIDATE[Image Validation]
+        LOAD[Model Loading]
     end
 
-    subgraph C["Classification Pipeline"]
-        C_TRANSFORM[Test Transform]
+    subgraph CLASSIFICATION[Classification Pipeline]
         RESNET[ResNet18 Transfer]
-        C_OUT[NORMAL / DEFECT<br/>probability]
+        C_OUT[NORMAL / DEFECT<br/>Probability]
     end
 
-    subgraph D["Detection Pipeline"]
-        D_TRANSFORM[Tensor Conversion]
-        FRCNN[Faster R-CNN<br/>MobileNetV3 Large 320 FPN]
-        D_OUT[Class · Score · Bounding Box]
+    subgraph DETECTION[Detection Pipeline]
+        FRCNN[Faster R-CNN<br/>MobileNetV3 320 FPN]
+        D_OUT[Class / Score / Box]
     end
 
-    subgraph CV["OpenCV Auxiliary Analysis"]
-        HIST[Brightness · Histogram · Edge]
-        MORPH[Threshold · Morphology]
-        CONTOUR[Contour Candidates]
+    subgraph ANALYSIS[Analysis]
+        CV[OpenCV Auxiliary Analysis]
+        FAILURE[Failure Analysis]
     end
 
     USER --> C_UI --> C_API
     USER --> D_UI --> D_API
-    C_API --> VALIDATE
-    D_API --> VALIDATE
-    LIFESPAN --> RESNET
-    LIFESPAN --> FRCNN
-    VALIDATE --> LOCK
-    LOCK --> C_TRANSFORM --> RESNET --> C_OUT --> C_UI
-    LOCK --> D_TRANSFORM --> FRCNN --> D_OUT --> D_UI
-    USER --> HIST --> MORPH --> CONTOUR
-
-    classDef input fill:#F8FAFC,stroke:#64748B,color:#0F172A;
-    classDef ui fill:#FFF7ED,stroke:#D97706,color:#0F172A;
-    classDef api fill:#ECFDF5,stroke:#0F766E,color:#0F172A;
-    classDef model fill:#EFF6FF,stroke:#2563EB,color:#0F172A,stroke-width:1.5px;
-    classDef output fill:#F1F5F9,stroke:#334155,color:#0F172A;
-
-    class USER input;
-    class C_UI,D_UI ui;
-    class HEALTH,C_API,D_API,VALIDATE,LIFESPAN,LOCK api;
-    class C_TRANSFORM,RESNET,D_TRANSFORM,FRCNN,HIST,MORPH model;
-    class C_OUT,D_OUT,CONTOUR output;
+    C_API --> VALIDATE --> RESNET --> C_OUT --> C_UI
+    D_API --> VALIDATE --> FRCNN --> D_OUT --> D_UI
+    LOAD --> RESNET
+    LOAD --> FRCNN
+    USER --> CV
+    C_OUT --> FAILURE
+    D_OUT --> FAILURE
 ```
 
-### Inference Request Flow
+### Design Decisions
 
-```mermaid
-sequenceDiagram
-    actor User
-    participant ST as Streamlit
-    participant API as FastAPI
-    participant Service as Inference Service
-    participant Model as Loaded Model
-
-    User->>ST: Upload image
-    ST->>API: Multipart HTTP request
-    API->>API: Validate extension, MIME, decode, size, pixels
-    API->>Service: Pass validated RGB image
-    Service->>Model: Run inference
-    Model-->>Service: Prediction
-    Service-->>API: Build response schema
-    API-->>ST: JSON response
-    ST-->>User: Label or detection overlay/table
-
-    Note over ST,Model: Streamlit does not load checkpoints directly
-    Note over API,Model: Models are loaded once during FastAPI lifespan
-```
+- 분류와 객체 탐지는 서로 다른 질문에 답하므로 독립된 모델과 Endpoint로 구성했습니다.
+- 모델은 FastAPI Lifespan에서 한 번 로드해 요청마다 Checkpoint를 다시 읽지 않도록 했습니다.
+- Streamlit은 Checkpoint를 직접 로드하지 않고 FastAPI Client로 동작합니다.
+- OpenCV Contour는 전처리 결과에서 얻은 후보 영역이며 객체 탐지 결과로 사용하지 않았습니다.
+- Grad-CAM은 모델 반응 영역을 확인하는 보조 분석으로 사용했습니다.
 
 ---
 
-## 5. Data & Model Scope
+## Project Details
 
-### 5.1 Classification Dataset
+<details open>
+<summary><b>01 | Classification — CNN Baseline과 ResNet18 비교</b></summary>
 
-| Item | Value |
+<br>
+
+### Dataset
+
+| 항목 | 내용 |
 |---|---:|
 | Dataset | Casting Product Image Data for Quality Inspection |
 | Total | 7,348 images |
 | Train | 5,306 |
 | Validation | 1,327 |
 | Test | 715 |
-| Image | 300×300 RGB |
-| Target | `0=NORMAL`, `1=DEFECT` |
+| Target | NORMAL / DEFECT |
 
-### 5.2 Classification Models
+### Models
 
-#### CNN Baseline
+**CNN Baseline**
 
 ```text
 Input
@@ -259,10 +192,9 @@ Input
 ```
 
 - Parameters: 6,065
-- Purpose: data pipeline·training loop·checkpoint·evaluation flow validation
-- Best Validation Accuracy: 76.94%
+- 목적: Dataset, 학습 Loop, Checkpoint, 평가 흐름의 기준 모델 구성
 
-#### ResNet18 Transfer Learning
+**ResNet18 Transfer Learning**
 
 ```text
 ImageNet Pretrained ResNet18
@@ -271,62 +203,90 @@ ImageNet Pretrained ResNet18
 → Raw Logit
 ```
 
-- Total parameters: 11,177,025
-- Trainable parameters: 513
-- Best epoch: 5
+- Total Parameters: 11,177,025
+- Trainable Parameters: 513
 - Best Validation Accuracy: 97.06%
-- CPU training time: 44.05 minutes
+- Test Accuracy: 97.34%
 
-### 5.3 Detection Dataset & Model
+### Failure Analysis
 
-| Item | Value |
+Test 715장 중 19개 오분류를 다음과 같이 구분했습니다.
+
+- False Positive: 13
+- False Negative: 6
+- Error Rate: 2.66%
+
+제조 품질 판정에서 불량을 정상으로 판단하는 False Negative를 별도로 확인하고, 예측 확률과 이미지 패턴을 함께 검토했습니다.
+
+</details>
+
+<details>
+<summary><b>02 | Object Detection — 6개 표면 결함 종류와 위치 탐지</b></summary>
+
+<br>
+
+### Dataset and Model
+
+| 항목 | 내용 |
 |---|---|
 | Dataset | NEU Surface Defect |
 | Images | 1,800 |
 | Classes | 6 |
-| Valid Boxes | 4,189 |
 | Model | Faster R-CNN MobileNetV3 Large 320 FPN |
-| Output | Class · Score · Bounding Box |
-| Best Checkpoint | `day12_detection_best.pt`, epoch 2 |
+| Output | Class, Score, Bounding Box |
+| Best Checkpoint | Epoch 2 |
 
----
+### Failure Analysis
 
-## 6. Evaluation & Failure Analysis
+객체 탐지 결과를 다음 5개 유형으로 구분했습니다.
 
-### Classification
-
-전역 지표만 보고 끝내지 않고 19개 오분류를 수집해 다음과 같이 구분했습니다.
-
-- **False Positive**: 실제 정상 이미지를 불량으로 판단
-- **False Negative**: 실제 불량 이미지를 정상으로 판단
-- 예측 확률과 시각적 패턴을 함께 확인
-- 제조 품질 검사에서 위험도가 큰 False Negative를 별도 검토
-
-### Detection
-
-다음 실패 유형을 구분했습니다.
-
-| Failure Type | Meaning |
+| Failure Type | 의미 |
 |---|---|
-| Low Confidence | 결함 후보는 있으나 score가 낮음 |
-| Missed Detection | 실제 결함을 찾지 못함 |
-| Localization Error | 결함은 찾았지만 위치가 부정확함 |
-| Duplicate Detection | 하나의 결함을 여러 Box로 중복 예측 |
-| Class Confusion | 결함 위치는 찾았지만 Class가 다름 |
+| Low Confidence | 결함 후보를 찾았지만 Score가 낮은 사례 |
+| Missed Detection | 실제 결함을 탐지하지 못한 사례 |
+| Localization Error | 결함을 찾았지만 Bounding Box 위치가 부정확한 사례 |
+| Duplicate Detection | 하나의 결함을 여러 Box로 예측한 사례 |
+| Class Confusion | 위치는 찾았지만 결함 Class를 다르게 예측한 사례 |
 
-Recall이 Precision보다 낮은 결과를 통해, 현재 모델은 잘못된 Box를 과도하게 생성하기보다 **실제 결함 일부를 놓치는 문제**가 더 크다고 해석했습니다.
+Precision보다 Recall이 낮아 현재 모델에서는 과도한 오탐보다 일부 결함 누락을 줄이는 개선이 우선이라고 판단했습니다.
 
----
+</details>
 
-## 7. API · Dashboard Integration
+<details>
+<summary><b>03 | OpenCV and Grad-CAM — 모델 결과를 보조하는 이미지 분석</b></summary>
+
+<br>
+
+### OpenCV Auxiliary Analysis
+
+- Brightness와 Histogram
+- Edge Detection
+- Threshold
+- Morphology
+- Contour Candidate
+
+OpenCV 분석은 이미지 상태와 형태적 특징을 확인하는 보조 과정입니다. Contour Candidate를 객체 탐지의 정답 위치나 Faster R-CNN 결과로 사용하지 않았습니다.
+
+### Grad-CAM
+
+ResNet18의 반응 영역이 결함과 관련된 부분에 나타나는지, 배경이나 주변 패턴에 과도하게 반응하는지를 시각적으로 확인했습니다.
+
+Grad-CAM은 결함 위치의 Ground Truth가 아니라 모델 반응 영역을 확인하기 위한 설명 보조 수단입니다.
+
+</details>
+
+<details>
+<summary><b>04 | FastAPI and Streamlit — 모델을 입력·응답 흐름으로 연결</b></summary>
+
+<br>
 
 ### Endpoints
 
-| Method | Endpoint | Role |
+| Method | Endpoint | 역할 |
 |---|---|---|
-| GET | `/api/v1/health` | 모델·서비스 상태 확인 |
+| GET | `/api/v1/health` | 모델과 서비스 상태 확인 |
 | POST | `/api/v1/predictions` | 정상·불량 분류 |
-| POST | `/api/v1/detection/predictions` | 결함 Class·Score·Bounding Box |
+| POST | `/api/v1/detection/predictions` | 결함 Class, Score, Bounding Box 반환 |
 
 ### Classification Response
 
@@ -353,23 +313,70 @@ Recall이 Precision보다 낮은 결과를 통해, 현재 모델은 잘못된 Bo
 }
 ```
 
-### Integration Decision
+### Integration
 
-- 모델은 FastAPI Lifespan에서 한 번 로드
-- 요청마다 체크포인트를 재로딩하지 않음
-- Streamlit은 모델을 직접 실행하지 않고 API Client로 호출
-- 분류와 검출 Endpoint를 독립적으로 유지
-- 실제 HTTP 요청으로 전체 흐름 검증
+```text
+Image Upload
+→ Streamlit API Client
+→ FastAPI Validation
+→ Loaded Model Inference
+→ JSON Response
+→ Prediction or Detection Overlay
+```
+
+</details>
+
+<details>
+<summary><b>05 | Validation — 모델·API·Dashboard 통합 검증</b></summary>
+
+<br>
+
+다음 범위를 pytest와 통합 실행으로 검증했습니다.
+
+- Dataset Configuration, Split, Transform, DataLoader
+- CNN, ResNet18, Faster R-CNN Model Flow
+- Checkpoint Metadata and Loading
+- Accuracy, Precision, Recall, F1, Confusion Matrix
+- Detection mAP, IoU, Class Metrics
+- Misclassification and Detection Failure Artifact
+- Image Validation and API Schema
+- FastAPI Endpoint and HTTP Integration
+- Streamlit API Client and Overlay
+- Final Regression Test
+
+</details>
+
+<details>
+<summary><b>06 | Current Scope and Next Steps</b></summary>
+
+<br>
+
+### Current Scope
+
+- Classification과 Detection은 목적과 데이터셋이 다른 독립 파이프라인입니다.
+- Detection은 CPU 환경에서 3 Epoch 학습한 Checkpoint를 평가했습니다.
+- Grad-CAM은 모델 반응 영역을 확인하는 보조 분석입니다.
+- 공개 제조 이미지 데이터셋을 사용한 프로젝트입니다.
+
+### Next Steps
+
+1. Detection Epoch, Scheduler, Augmentation 비교
+2. Class별 Recall과 누락 원인에 따른 Sampling 개선
+3. COCOeval 기반 표준 AP 추가
+4. 모델 Version, 추론 Log, Latency Monitoring
+5. 실제 제조 데이터 환경을 고려한 Drift와 재학습 기준 설계
+
+</details>
 
 ---
 
-## 8. Project Structure
+## Project Structure
 
 ```text
 manufacturing-vision-defect-analysis-system/
 ├── data/
-├── models/
-│   └── checkpoints/
+├── docs/
+│   └── assets/
 ├── reports/
 │   ├── artifacts/
 │   ├── figures/
@@ -377,6 +384,7 @@ manufacturing-vision-defect-analysis-system/
 ├── scripts/
 ├── src/
 │   ├── api/
+│   ├── dashboard/
 │   ├── data/
 │   ├── detection/
 │   ├── evaluation/
@@ -387,35 +395,16 @@ manufacturing-vision-defect-analysis-system/
 │   └── training/
 ├── tests/
 ├── README.md
-├── requirements.txt
-└── pytest.ini
+└── requirements.txt
 ```
 
 ---
 
-## 9. Development Schedule
-
-| Day | Scope |
-|---:|---|
-| 1–2 | Classification data analysis·Dataset·DataLoader |
-| 3–4 | CNN Baseline·ResNet18 training and evaluation |
-| 5–6 | Misclassification analysis·Grad-CAM |
-| 7–8 | Classification FastAPI·Streamlit |
-| 9 | Detection dataset analysis |
-| 10 | OpenCV auxiliary analysis |
-| 11–12 | Detection model·training·evaluation·failure analysis |
-| 13 | Detection FastAPI·Streamlit integration |
-| 14 | Final integration·README·Portfolio·regression test |
-
-짧은 제출 일정에 맞춰 먼저 범위를 고정하고, 기능별 구현과 검증 결과를 매일 문서로 남겼습니다.
-
----
-
-## 10. How to Run
+## Run
 
 ### Environment
 
-| Item | Value |
+| 항목 | 내용 |
 |---|---|
 | OS | Windows |
 | Python | 3.11.9 |
@@ -444,60 +433,22 @@ python -m pip check
 .\.venv\Scripts\python.exe -m streamlit run .\src\dashboard\app.py
 ```
 
-> 실제 실행 모듈 경로가 저장소 최신 구조와 다를 경우 `README` 하단의 기존 실행 명령 또는 `scripts/`를 우선 확인하세요.
-
 ### Tests
 
 ```powershell
-python -m pytest .\tests -q
+.\.venv\Scripts\python.exe -m pytest .\tests -q
 ```
 
 ---
 
-## 11. Validation Scope
+## What This Project Demonstrates
 
-- Dataset configuration·split·transform·DataLoader
-- CNN·ResNet18·Faster R-CNN model flow
-- Checkpoint metadata and loading
-- Accuracy·Precision·Recall·F1·Confusion Matrix
-- Detection mAP·IoU·class metrics
-- Misclassification·failure artifact generation
-- Image validation and API schema
-- FastAPI endpoint and HTTP integration
-- Streamlit API client and overlay
-- Final regression test
-
----
-
-## 12. Limitations & Next Steps
-
-### Current Limitations
-
-- Detection Recall **0.526807**로 일부 결함 누락이 남아 있음
-- 3 Epoch CPU 학습으로 충분한 수렴·하이퍼파라미터 탐색을 수행하지 못함
-- Classification과 Detection은 서로 다른 데이터셋을 사용하므로 하나의 통합 정답으로 해석할 수 없음
-- Grad-CAM은 결함 위치의 Ground Truth가 아닌 설명 보조 수단
-- 브라우저 수동 확인 기록은 자동 테스트와 별도로 관리됨
-- 운영 환경의 인증·모니터링·모델 버전 관리까지는 구현하지 않음
-
-### Next Steps
-
-1. Detection 학습 Epoch·Scheduler·Augmentation 비교
-2. Class별 Recall과 누락 원인에 따른 Sampling 개선
-3. COCOeval 기반 표준 AP 추가
-4. 모델 버전·추론 로그·Latency 모니터링
-5. 실제 제조 데이터의 Drift와 재학습 기준 설계
-
----
-
-## 13. What This Project Demonstrates
-
-- 제조 이미지 데이터를 학습 가능한 형태로 구성하는 능력
-- Baseline과 전이학습 모델을 동일 기준으로 비교하는 능력
-- Vision Classification과 Object Detection의 역할 차이를 설명하는 능력
-- Accuracy뿐 아니라 Recall·F1·mAP·IoU와 실제 실패 사례를 분석하는 능력
-- PyTorch 모델을 FastAPI·Streamlit 사용자 흐름으로 연결하는 능력
-- 테스트와 문서로 실행 결과를 재현 가능하게 남기는 능력
+- 제조 이미지 데이터를 PyTorch 학습 파이프라인으로 구성한 경험
+- CNN Baseline과 ResNet18 전이학습을 동일한 평가 기준으로 비교한 경험
+- 이미지 분류와 객체 탐지의 역할을 구분해 구현한 경험
+- Accuracy뿐 아니라 Recall, F1, mAP, IoU와 실제 실패 사례를 함께 분석한 경험
+- PyTorch 모델을 FastAPI와 Streamlit 사용자 흐름으로 연결한 경험
+- 모델, API, Dashboard를 테스트하고 결과를 문서화한 경험
 
 ---
 
@@ -506,8 +457,3 @@ python -m pytest .\tests -q
 - Developer: 김수진
 - GitHub: [github.com/lightleaping](https://github.com/lightleaping)
 - Email: workingskyroad@gmail.com
----
-
-## 개편 전 README 보존
-
-적용 스크립트는 교체 전 README를 `docs/archive/README_before_encell.md`와 시간별 백업 파일로 보존합니다. 기존의 긴 개발 기록이나 실행 설명은 삭제하지 않고 해당 문서에서 계속 확인할 수 있습니다.
