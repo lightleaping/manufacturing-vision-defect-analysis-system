@@ -125,8 +125,8 @@
 <table>
   <tr>
     <td width="50%" align="center">
-      <b>Classification Failure Analysis</b><br><br>
-      <img src="./reports/figures/day5_resnet18_all_misclassifications.png" alt="ResNet18 오분류 분석" width="100%">
+      <b>Classification False Negative Analysis</b><br><br>
+      <img src="./reports/figures/day5_resnet18_false_negatives.png" alt="ResNet18 False Negative 분석" width="100%">
     </td>
     <td width="50%" align="center">
       <b>Grad-CAM</b><br><br>
@@ -144,6 +144,8 @@
     </td>
   </tr>
 </table>
+
+> 전체 오분류는 False Positive 13개와 False Negative 6개로 집계했으며, 상단에는 제조 품질 판정에서 우선 확인할 필요가 있는 False Negative 사례를 표시했습니다.
 
 ---
 
@@ -454,16 +456,6 @@ manufacturing-vision-defect-analysis-system/
 - Accuracy뿐 아니라 Recall, F1, mAP, IoU와 실제 실패 사례를 함께 분석한 경험
 - PyTorch 모델을 FastAPI와 Streamlit 사용자 흐름으로 연결한 경험
 - 모델, API, Dashboard를 테스트하고 결과를 문서화한 경험
-
----
-
-## References
-
-- [NIST — Manufacturing quality evaluation and false-positive / false-negative implications](https://nvlpubs.nist.gov/nistpubs/ams/NIST.AMS.100-72.pdf)
-- [scikit-learn — Precision, Recall, F1, and Confusion Matrix](https://scikit-learn.org/stable/modules/model_evaluation.html)
-- [Microsoft COCO — Common Objects in Context](https://arxiv.org/abs/1405.0312)
-- [Generalized Intersection over Union — IoU as an object-detection localization metric](https://arxiv.org/abs/1902.09630)
-- [Localization Recall Precision — localization, false-negative, and false-positive components](https://arxiv.org/abs/1807.01696)
 
 ---
 
